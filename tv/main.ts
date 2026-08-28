@@ -51,8 +51,194 @@ function showOnly(section: HTMLElement) {
   }
 }
 
+// ===========================================================================
+// Boot screen — a deliberate, minimum-duration "console starting up" sequence.
+// Progress is tied to real milestones (socket connect, room created) but a
+// floor duration is enforced so it never feels instant/cheap even on a fast
+// LAN. This is purely presentational and never blocks the actual socket
+// logic below, which runs immediately in parallel.
+// ===========================================================================
+
+const bootScreen = document.getElementById("boot-screen")!;
+const bootBar = document.getElementById("boot-progress-bar")!;
+const bootLabel = document.getElementById("boot-label")!;
+const appShell = document.getElementById("app-shell")!;
+
+const BOOT_MIN_MS = 1600;
+const bootStartedAt = performance.now();
+let roomIsReady = false;
+
+function setBootProgress(percent: number, label?: string) {
+  bootBar.style.width = `${percent}%`;
+  if (label) bootLabel.textContent = label;
+}
+
+function finishBootIfReady() {
+  if (!roomIsReady) return;
+  const elapsed = performance.now() - bootStartedAt;
+  const remaining = Math.max(BOOT_MIN_MS - elapsed, 0);
+  setBootProgress(100, "Ready");
+  setTimeout(() => {
+    bootScreen.classList.add("boot-hide");
+    appShell.classList.add("shell-visible");
+    setTimeout(() => bootScreen.remove(), 700);
+  }, remaining);
+}
+
+setBootProgress(12, "Starting Stellar Play…");
+
+// Safety net: never let the boot screen hang forever if something is slow
+// (e.g. first-run dependency install still finishing) — reveal the app
+// after a hard ceiling even if room:created hasn't arrived yet.
+setTimeout(() => {
+  if (!roomIsReady) {
+    roomIsReady = true;
+    finishBootIfReady();
+  }
+}, 8000);
+
+// ===========================================================================
+// Settings — a self-contained overlay + localStorage persistence. Deliberately
+// independent of the game-phase view switching below (showOnly), so opening
+// it can never interfere with room/game state.
+// ===========================================================================
+
+type Density = "comfortable" | "compact";
+type ThemeId = "stellar-dark" | "wii-light" | "midnight";
+
+type Settings = {
+  theme: ThemeId;
+  cursor: boolean;
+  reducedMotion: boolean;
+  density: Density;
+};
+
+const DEFAULT_SETTINGS: Settings = {
+  theme: "stellar-dark",
+  cursor: true,
+  reducedMotion: false,
+  density: "comfortable",
+};
+
+const SETTINGS_KEY = "stellarplay:tv-settings";
+
+function loadSettings(): Settings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return { ...DEFAULT_SETTINGS };
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+function saveSettings(settings: Settings) {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch {
+    // Storage can fail (private browsing, quota); settings just won't persist.
+  }
+}
+
+function applySettings(settings: Settings) {
+  document.documentElement.dataset.theme = settings.theme;
+  document.documentElement.dataset.density = settings.density;
+  document.documentElement.classList.toggle("no-custom-cursor", !settings.cursor);
+  document.documentElement.classList.toggle("reduced-motion", settings.reducedMotion);
+
+  document.querySelectorAll<HTMLButtonElement>("#theme-picker button").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.value === settings.theme);
+  });
+  document.querySelectorAll<HTMLButtonElement>("#density-picker button").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.value === settings.density);
+  });
+  (document.getElementById("cursor-toggle") as HTMLInputElement).checked = settings.cursor;
+  (document.getElementById("motion-toggle") as HTMLInputElement).checked = settings.reducedMotion;
+}
+
+let settings = loadSettings();
+applySettings(settings);
+
+const settingsOverlay = document.getElementById("settings-overlay")!;
+
+function openSettings() {
+  settingsOverlay.classList.remove("hidden");
+  settingsOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeSettings() {
+  settingsOverlay.classList.add("hidden");
+  settingsOverlay.setAttribute("aria-hidden", "true");
+}
+
+document.querySelectorAll<HTMLElement>("[data-close-settings]").forEach((el) => {
+  el.addEventListener("click", closeSettings);
+});
+
+document.querySelectorAll<HTMLButtonElement>("#theme-picker button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    settings = { ...settings, theme: btn.dataset.value as ThemeId };
+    saveSettings(settings);
+    applySettings(settings);
+  });
+});
+
+document.querySelectorAll<HTMLButtonElement>("#density-picker button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    settings = { ...settings, density: btn.dataset.value as Density };
+    saveSettings(settings);
+    applySettings(settings);
+  });
+});
+
+document.getElementById("cursor-toggle")!.addEventListener("change", (e) => {
+  settings = { ...settings, cursor: (e.target as HTMLInputElement).checked };
+  saveSettings(settings);
+  applySettings(settings);
+});
+
+document.getElementById("motion-toggle")!.addEventListener("change", (e) => {
+  settings = { ...settings, reducedMotion: (e.target as HTMLInputElement).checked };
+  saveSettings(settings);
+  applySettings(settings);
+});
+
+// ===========================================================================
+// Top nav — Home/Games/Players/Leaderboard scroll within the lobby (they're
+// only meaningful while the lobby is on screen); Settings opens the overlay.
+// ===========================================================================
+
+document.querySelectorAll<HTMLButtonElement>(".nav-item[data-nav]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.nav!;
+
+    if (target === "settings") {
+      openSettings();
+      return;
+    }
+
+    document.querySelectorAll<HTMLElement>(".nav-item[data-nav]").forEach((b) => {
+      b.classList.toggle("active", b === btn);
+    });
+
+    if (target === "home") {
+      document.getElementById("lobby-top")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (target === "games") {
+      document.getElementById("games")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (target === "players") {
+      document.getElementById("players")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+});
+
+// ===========================================================================
+// Socket wiring — unchanged from the working build (room/game logic only;
+// no presentation changes here beyond the two boot-progress calls marked).
+// ===========================================================================
+
 socket.on("connect", () => {
   statusEl.textContent = "Connected. Creating room…";
+  setBootProgress(55, "Connecting to host…"); // boot progress
   socket.emit("room:create");
 });
 
@@ -68,6 +254,8 @@ socket.on("room:created", async (payload: RoomCreatedPayload) => {
     width: 180,
     margin: 1,
   });
+  roomIsReady = true; // boot progress
+  finishBootIfReady(); // boot progress
 });
 
 socket.on("game:library", (games: GameLibraryEntry[]) => {
