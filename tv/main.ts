@@ -83,7 +83,7 @@ socket.on("game:library", (games: GameLibraryEntry[]) => {
     li.innerHTML = `<span class="game-icon">⏱️</span><strong>${game.name}</strong><span class="game-desc">${game.description}</span>`;
     li.addEventListener("click", () => {
       if (game.id === "high-forest-quest") {
-        window.location.assign("/games/high-forest/");
+        window.location.assign("/games/high-forest/index.html");
         return;
       }
       socket.emit("room:start-game", { gameId: game.id });

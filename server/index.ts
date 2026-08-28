@@ -39,6 +39,12 @@ async function main() {
   const httpServer = createHttpServer(app);
   const io = new SocketIOServer(httpServer);
 
+  // Public games are static files. Vite serves the file itself, while this
+  // redirect makes the clean library URL resolve reliably in development.
+  app.get("/games/high-forest/", (_request, response) => {
+    response.redirect(302, "/games/high-forest/index.html");
+  });
+
   // --- Socket.IO: rooms, players, connections ---------------------------
   // The server is authoritative for room membership and player identity.
   // Clients never invent their own player IDs or room state.
