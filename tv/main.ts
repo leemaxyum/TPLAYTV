@@ -25,10 +25,12 @@ const gameViewSection = document.getElementById("game-view")!;
 const resultsSection = document.getElementById("results-view")!;
 const gameTitleEl = document.getElementById("game-title")!;
 const gameStageEl = document.getElementById("game-stage")!;
+const highForestFrame = document.getElementById("high-forest-frame") as HTMLIFrameElement;
 const resultsListEl = document.getElementById("results-list")!;
 const libraryBtn = document.getElementById("library-btn")!;
 
 let library: GameLibraryEntry[] = [];
+let activeGameId: string | null = null;
 
 // Fixed palette so avatar colors stay stable across re-renders/sorts.
 const AVATAR_COLORS = ["#0137f2", "#e63946", "#2ec4b6", "#fee500", "#ff6b35", "#8338ec", "#06d6a0", "#ef476f"];
@@ -125,9 +127,24 @@ socket.on("room:state", (room: RoomState) => {
 
 socket.on("game:started", (payload: GameStartedPayload) => {
   const game = library.find((g) => g.id === payload.gameId);
+  activeGameId = payload.gameId;
   gameTitleEl.textContent = game?.name ?? payload.gameId;
-  gameStageEl.textContent = "Get ready…";
+  const isHighForest = payload.gameId === "high-forest-quest";
+  highForestFrame.classList.toggle("hidden", !isHighForest);
+  gameStageEl.classList.toggle("hidden", isHighForest);
+  if (isHighForest) {
+    gameStageEl.textContent = "";
+    highForestFrame.src = "/games/high-forest/";
+  } else {
+    highForestFrame.src = "";
+    gameStageEl.textContent = "Get ready…";
+  }
   showOnly(gameViewSection);
+});
+
+socket.on("game:input", (input: { action: string; pressed: boolean }) => {
+  if (activeGameId !== "high-forest-quest" || !highForestFrame.contentWindow) return;
+  highForestFrame.contentWindow.postMessage({ type: "remote-input", ...input }, window.location.origin);
 });
 
 socket.on("game:state", (state: QuickDrawStage) => {
@@ -156,5 +173,7 @@ socket.on("game:results", (payload: GameResultsPayload) => {
 });
 
 libraryBtn.addEventListener("click", () => {
+  activeGameId = null;
+  highForestFrame.src = "";
   socket.emit("room:return-to-library");
 });

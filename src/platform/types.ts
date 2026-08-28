@@ -74,5 +74,6 @@ export type GameResultsPayload = {
 
 export type ControllerInputPayload = {
   action: string;
+  pressed?: boolean;
   sequence?: number;
 };

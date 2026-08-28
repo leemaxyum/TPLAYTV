@@ -320,6 +320,15 @@ body {
   color: #37e08b;
 }
 
+.high-forest-frame {
+  width: 100%;
+  height: min(72vh, 680px);
+  border: 0;
+  border-radius: 18px;
+  background: #0c1421;
+  overflow: hidden;
+}
+
 /* --- Results ------------------------------------------------- */
 
 .results-view {

@@ -19,12 +19,13 @@ const controllerViewEl = document.getElementById("controller-view")!;
 const resultsViewEl = document.getElementById("results-view")!;
 const resultTextEl = document.getElementById("result-text")!;
 const tapButton = document.getElementById("tap-button") as HTMLButtonElement;
+const forestControllerEl = document.getElementById("forest-controller")!;
 
 let myPlayerId: string | null = null;
 let tapSequence = 0;
 
 function showOnly(section: HTMLElement) {
-  for (const el of [waitingEl, controllerViewEl, resultsViewEl]) {
+  for (const el of [waitingEl, controllerViewEl, forestControllerEl, resultsViewEl]) {
     el.classList.toggle("hidden", el !== section);
   }
 }
@@ -70,6 +71,10 @@ socket.on("room:state", (room: RoomState) => {
 });
 
 socket.on("game:started", (payload: GameStartedPayload) => {
+  if (payload.controller.type === "dpad") {
+    showOnly(forestControllerEl);
+    return;
+  }
   if (payload.controller.type === "buttons" && payload.controller.buttons.length === 1) {
     tapButton.textContent = payload.controller.buttons[0].toUpperCase();
   }
@@ -81,6 +86,15 @@ tapButton.addEventListener("click", () => {
   const input: ControllerInputPayload = { action: "tap", sequence: tapSequence++ };
   socket.emit("controller:input", input);
   tapButton.disabled = true;
+});
+
+forestControllerEl.querySelectorAll<HTMLButtonElement>("[data-action]").forEach((button) => {
+  const action = button.dataset.action!;
+  const send = (pressed: boolean) => socket.emit("controller:input", { action, pressed, sequence: tapSequence++ });
+  button.addEventListener("pointerdown", (event) => { event.preventDefault(); button.setPointerCapture(event.pointerId); send(true); });
+  button.addEventListener("pointerup", () => send(false));
+  button.addEventListener("pointercancel", () => send(false));
+  button.addEventListener("lostpointercapture", () => send(false));
 });
 
 socket.on("game:results", (payload: GameResultsPayload) => {

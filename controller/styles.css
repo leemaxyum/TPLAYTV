@@ -162,6 +162,20 @@ body {
   box-shadow: 0 4px 0 #262b45;
 }
 
+.forest-controller {
+  width: 100%;
+  max-width: 390px;
+  text-align: center;
+}
+
+.forest-controller p { color: var(--ink-light); font-weight: 800; }
+.dpad-row, .action-grid { display: grid; gap: 0.75rem; margin: 0.75rem 0; }
+.dpad-row { grid-template-columns: 1fr 1fr; }
+.action-grid { grid-template-columns: 1fr 1fr; }
+.forest-controller button { min-height: 4.8rem; border: 0; border-radius: 18px; background: var(--brand-blue); color: #fff; font-size: 1.1rem; font-weight: 900; box-shadow: 0 4px 0 #01228e; touch-action: none; }
+.forest-controller .dpad-row button { font-size: 2rem; background: #243f9b; }
+.forest-controller button:active { transform: translateY(3px); box-shadow: 0 1px 0 #01228e; }
+
 /* --- Bottom nav (mostly a visual echo of the mockup; only Controller works) --- */
 
 .bottom-nav {

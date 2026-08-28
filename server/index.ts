@@ -23,7 +23,7 @@ import type {
   RoomJoinedPayload,
   ServerErrorPayload,
 } from "../src/platform/types.js";
-import { controllerForGame, gameLibrary } from "./gameRegistry.js";
+import { controllerForGame, gameLibrary, HIGH_FOREST_ID } from "./gameRegistry.js";
 import {
   QUICK_DRAW_ID,
   cancelQuickDraw,
@@ -141,6 +141,13 @@ async function main() {
 
       if (room.gameId === QUICK_DRAW_ID && raw.action === "tap") {
         handleQuickDrawInput(io, room, playerId);
+      }
+      if (room.gameId === HIGH_FOREST_ID && room.hostSocketId) {
+        io.to(room.hostSocketId).emit("game:input", {
+          playerId,
+          action: raw.action,
+          pressed: raw.pressed === true,
+        });
       }
     });
 
