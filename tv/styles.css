@@ -1,0 +1,379 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --brand-blue: #0137f2;
+  --brand-blue-bright: #3b6bff;
+  --brand-yellow: #fee500;
+  --navy-deep: #060a1f;
+  --navy: #0a1332;
+  --navy-card: #101c47;
+  --navy-card-hover: #16255c;
+  --ink-light: #c9d3ff;
+  --ink-dim: #7c88b8;
+}
+
+html,
+body {
+  cursor: url("/assets/cursor-hand.png") 6 2, pointer;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: #fff;
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  background: radial-gradient(circle at 20% 0%, #101c47 0%, var(--navy) 45%, var(--navy-deep) 100%);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Top bar ------------------------------------------------------ */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: rgba(6, 10, 31, 0.6);
+  border-bottom: 1px solid rgba(120, 140, 255, 0.15);
+}
+
+.brand-logo {
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  color: var(--ink-light);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.nav-item:hover {
+  background: rgba(120, 140, 255, 0.12);
+  color: #fff;
+}
+
+.nav-item.active {
+  background: var(--brand-blue);
+  color: #fff;
+}
+
+.nav-item.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* --- Content layout ------------------------------------------------ */
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  scroll-behavior: smooth;
+}
+
+.channel {
+  background: var(--navy-card);
+  border-radius: 18px;
+  padding: 1.5rem;
+  border: 1px solid rgba(120, 140, 255, 0.14);
+}
+
+.lobby-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* --- Join column ------------------------------------------------- */
+
+.join-column h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.4rem;
+}
+
+.join-column .sub {
+  color: var(--ink-dim);
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.room-code-box {
+  background: var(--navy);
+  border: 2px solid var(--brand-blue-bright);
+  border-radius: 14px;
+  text-align: center;
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  padding: 0.9rem 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.qr-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+#qr-canvas {
+  border-radius: 10px;
+  background: #fff;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--ink-light);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.join-url {
+  color: var(--brand-blue-bright);
+  font-size: 0.8rem;
+  word-break: break-all;
+  margin: 0 0 0.75rem;
+}
+
+.status {
+  color: var(--ink-dim);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* --- Game grid ------------------------------------------------- */
+
+.section-title {
+  font-size: 1.2rem;
+  margin: 0 0 1rem;
+}
+
+.game-grid {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.game-card {
+  background: var(--navy-card);
+  border: 2px solid rgba(120, 140, 255, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  cursor: url("/assets/cursor-hand.png") 6 2, pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.game-card:not(.coming-soon):hover {
+  transform: translateY(-4px);
+  border-color: var(--brand-yellow);
+  background: var(--navy-card-hover);
+}
+
+.game-card:not(.coming-soon):active {
+  transform: translateY(-1px);
+}
+
+.game-icon {
+  font-size: 2.4rem;
+}
+
+.game-card strong {
+  font-size: 1.05rem;
+}
+
+.game-desc {
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+}
+
+.game-card.coming-soon {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+.soon-badge {
+  margin-top: 0.25rem;
+  background: var(--brand-yellow);
+  color: var(--navy-deep);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+}
+
+/* --- Players ------------------------------------------------- */
+
+.players-block {
+  margin-top: 0;
+}
+
+.avatar-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.avatar-list li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: 84px;
+}
+
+.avatar-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.player-name {
+  font-size: 0.8rem;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.player-score {
+  color: var(--brand-yellow);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.avatar-list li.disconnected .avatar-circle {
+  opacity: 0.35;
+}
+
+.avatar-list li.disconnected .player-name {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+/* --- Game view ------------------------------------------------- */
+
+.game-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.game-stage {
+  font-size: 5rem;
+  font-weight: 800;
+  margin: 0.5rem 0;
+}
+
+.game-stage.ready {
+  color: var(--brand-yellow);
+}
+
+.game-stage.go {
+  color: #37e08b;
+}
+
+/* --- Results ------------------------------------------------- */
+
+.results-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.results-list {
+  list-style: decimal;
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.results-view button {
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.75rem 1.75rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--brand-yellow);
+  color: var(--navy-deep);
+  cursor: url("/assets/cursor-hand.png") 6 2, pointer;
+  transition: transform 140ms ease;
+}
+
+.results-view button:hover {
+  transform: translateY(-2px);
+}
+
+/* --- Footer ------------------------------------------------- */
+
+.statusbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 2rem;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+  background: rgba(6, 10, 31, 0.6);
+  border-top: 1px solid rgba(120, 140, 255, 0.15);
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .lobby-grid {
+    grid-template-columns: 1fr;
+  }
+}

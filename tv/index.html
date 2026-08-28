@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stellar Play — TV</title>
+    <link rel="icon" type="image/webp" href="/assets/favicon.webp" />
+    <link rel="preload" as="image" href="/assets/logo.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/assets/cursor-hand.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <img
+          class="brand-logo"
+          src="/assets/logo.webp"
+          width="64"
+          height="48"
+          alt="Stellar C&H — Coding & Hackathon Club"
+          fetchpriority="high"
+          decoding="async"
+        />
+        <nav class="nav">
+          <a href="#lobby-top" class="nav-item active">🏠 Home</a>
+          <a href="#games" class="nav-item">🎮 Games</a>
+          <a href="#players" class="nav-item">👥 Players</a>
+          <a href="#players" class="nav-item">🏆 Leaderboard</a>
+          <span class="nav-item disabled" title="Coming soon" aria-disabled="true">⚙️ Settings</span>
+        </nav>
+      </header>
+
+      <main class="content" id="lobby-top">
+        <section id="lobby" class="lobby-grid">
+          <aside class="join-column channel">
+            <h2>Ready to play?</h2>
+            <p class="sub">Scan the QR or enter the room code on your phone!</p>
+
+            <div class="room-code-box" id="room-code">— — — —</div>
+
+            <div class="qr-row">
+              <canvas id="qr-canvas"></canvas>
+              <ol class="steps">
+                <li>Scan QR</li>
+                <li>Enter code</li>
+                <li>Join &amp; play!</li>
+              </ol>
+            </div>
+
+            <p class="join-url" id="join-url"></p>
+            <p class="status" id="status">Connecting…</p>
+          </aside>
+
+          <div class="main-column">
+            <h2 id="games" class="section-title">🎮 Select a game</h2>
+            <ul id="game-library" class="game-grid">
+              <!-- Quick Draw is injected here by main.ts once the server confirms it -->
+              <li class="game-card coming-soon">
+                <span class="game-icon">🎨</span>
+                <strong>Color Clash</strong>
+                <span class="game-desc">Match. Faster. Win.</span>
+                <span class="soon-badge">Coming soon</span>
+              </li>
+              <li class="game-card coming-soon">
+                <span class="game-icon">🏃</span>
+                <strong>Crowd Dodge</strong>
+                <span class="game-desc">Don't get hit!</span>
+                <span class="soon-badge">Coming soon</span>
+              </li>
+              <li class="game-card coming-soon">
+                <span class="game-icon">❓</span>
+                <strong>More games</strong>
+                <span class="game-desc">Stay tuned!</span>
+                <span class="soon-badge">Coming soon</span>
+              </li>
+            </ul>
+
+            <div id="players" class="players-block channel">
+              <h2 class="section-title">
+                👥 Players connected <span id="player-count">(0)</span>
+              </h2>
+              <ul id="player-list" class="avatar-list"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="game-view" class="channel game-view hidden">
+          <h2 id="game-title"></h2>
+          <p id="game-stage" class="game-stage"></p>
+        </section>
+
+        <section id="results-view" class="channel results-view hidden">
+          <h2>Results</h2>
+          <ol id="results-list" class="results-list"></ol>
+          <button id="library-btn">Back to library</button>
+        </section>
+      </main>
+
+      <footer class="statusbar">
+        <span>Stellar C&H — v0.1 alpha</span>
+        <span id="footer-hint">Tap fastest to win Quick Draw!</span>
+      </footer>
+    </div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

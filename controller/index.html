@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Stellar Play — Controller</title>
+    <link rel="icon" type="image/webp" href="/assets/favicon.webp" />
+    <link rel="preload" as="image" href="/assets/logo.webp" fetchpriority="high" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="controller-shell">
+      <img
+        class="brand-logo"
+        src="/assets/logo.webp"
+        width="96"
+        height="72"
+        alt="Stellar C&H — Coding & Hackathon Club"
+        fetchpriority="high"
+        decoding="async"
+      />
+
+      <div class="card">
+        <h1 class="card-title">Join a Game</h1>
+
+        <form id="join-form" class="join-form">
+          <label for="room-code">Enter room code</label>
+          <input
+            id="room-code"
+            name="room-code"
+            class="code-input"
+            maxlength="4"
+            autocomplete="off"
+            autocapitalize="characters"
+            placeholder="7K2M"
+          />
+
+          <label for="name">Your name</label>
+          <input
+            id="name"
+            name="name"
+            maxlength="20"
+            autocomplete="off"
+            placeholder="Alex"
+          />
+
+          <button type="submit">JOIN GAME</button>
+          <p id="error" class="error"></p>
+        </form>
+      </div>
+
+      <section id="waiting" class="waiting hidden card">
+        <p class="status">You're in! Waiting for the host to start a game…</p>
+      </section>
+
+      <section id="controller-view" class="controller-view hidden">
+        <button id="tap-button" class="tap-button">TAP</button>
+      </section>
+
+      <section id="results-view" class="results-view hidden card">
+        <p class="status" id="result-text"></p>
+        <p class="status">Waiting for the host…</p>
+      </section>
+
+      <nav class="bottom-nav">
+        <span class="nav-item disabled">🏠<br />Home</span>
+        <span class="nav-item active">🎮<br />Controller</span>
+        <span class="nav-item disabled">👤<br />Profile</span>
+        <span class="nav-item disabled">❓<br />Help</span>
+      </nav>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

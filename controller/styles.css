@@ -1,0 +1,198 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --brand-blue: #0137f2;
+  --brand-blue-bright: #3b6bff;
+  --brand-yellow: #fee500;
+  --navy-deep: #060a1f;
+  --navy: #0a1332;
+  --navy-card: #101c47;
+  --ink-light: #c9d3ff;
+  --ink-dim: #7c88b8;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: #fff;
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  background: radial-gradient(circle at 30% 0%, #101c47 0%, var(--navy) 45%, var(--navy-deep) 100%);
+}
+
+.controller-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1.5rem 5.5rem;
+  gap: 1.5rem;
+}
+
+.brand-logo {
+  width: 96px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.card {
+  width: 100%;
+  max-width: 320px;
+  background: var(--navy-card);
+  border: 1px solid rgba(120, 140, 255, 0.18);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.card-title {
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.join-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.join-form label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-light);
+  margin-top: 0.5rem;
+}
+
+.join-form input {
+  font-size: 1.4rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 2px solid rgba(120, 140, 255, 0.25);
+  background: var(--navy);
+  color: #fff;
+}
+
+.code-input {
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.75em;
+  padding-left: 1.2em !important; /* re-centers the letter-spaced text */
+  font-family: "Courier New", monospace;
+}
+
+.join-form input:focus {
+  outline: none;
+  border-color: var(--brand-blue-bright);
+}
+
+.join-form input::placeholder {
+  color: var(--ink-dim);
+  letter-spacing: 0.75em;
+}
+
+.join-form button {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  padding: 1rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--brand-yellow);
+  color: var(--navy-deep);
+  box-shadow: 0 4px 0 #c7ae00;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.join-form button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #c7ae00;
+}
+
+.error {
+  color: #ff6b8a;
+  min-height: 1.2rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.waiting,
+.results-view {
+  text-align: center;
+}
+
+.waiting .status,
+.results-view .status {
+  color: var(--ink-light);
+  font-weight: 600;
+  margin: 0.25rem 0;
+}
+
+.controller-view {
+  width: 100%;
+  height: 60vh;
+  display: flex;
+}
+
+.tap-button {
+  flex: 1;
+  font-size: 3rem;
+  font-weight: 800;
+  border-radius: 28px;
+  border: none;
+  background: var(--brand-yellow);
+  color: var(--navy-deep);
+  box-shadow: 0 6px 0 #c7ae00;
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.tap-button:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #c7ae00;
+}
+
+.tap-button:disabled {
+  background: #3a3f5c;
+  color: #8791b3;
+  box-shadow: 0 4px 0 #262b45;
+}
+
+/* --- Bottom nav (mostly a visual echo of the mockup; only Controller works) --- */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
+  background: rgba(6, 10, 31, 0.85);
+  border-top: 1px solid rgba(120, 140, 255, 0.15);
+  backdrop-filter: blur(6px);
+}
+
+.bottom-nav .nav-item {
+  font-size: 0.7rem;
+  text-align: center;
+  color: var(--ink-dim);
+  line-height: 1.6;
+}
+
+.bottom-nav .nav-item.active {
+  color: var(--brand-yellow);
+  font-weight: 700;
+}
+
+.bottom-nav .nav-item.disabled {
+  opacity: 0.4;
+}
+
+.hidden {
+  display: none !important;
+}
