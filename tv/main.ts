@@ -82,10 +82,6 @@ socket.on("game:library", (games: GameLibraryEntry[]) => {
     li.className = "game-card dynamic-game";
     li.innerHTML = `<span class="game-icon">⏱️</span><strong>${game.name}</strong><span class="game-desc">${game.description}</span>`;
     li.addEventListener("click", () => {
-      if (game.id === "high-forest-quest") {
-        window.location.assign("/games/high-forest/index.html");
-        return;
-      }
       socket.emit("room:start-game", { gameId: game.id });
     });
     fragment.appendChild(li);
@@ -138,7 +134,7 @@ socket.on("game:started", (payload: GameStartedPayload) => {
   gameStageEl.classList.toggle("hidden", isHighForest);
   if (isHighForest) {
     gameStageEl.textContent = "";
-    highForestFrame.src = "/games/high-forest/";
+    highForestFrame.src = "/games/high-forest/index.html";
   } else {
     highForestFrame.src = "";
     gameStageEl.textContent = "Get ready…";
