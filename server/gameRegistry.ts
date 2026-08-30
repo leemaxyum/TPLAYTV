@@ -1,5 +1,6 @@
 import type { GameLibraryEntry } from "../src/platform/types.js";
 import { QUICK_DRAW_ID, quickDrawController } from "./games/quickDraw.js";
+import { TRIVIA_RUSH_ID, triviaRushController } from "./games/triviaRush.js";
 
 export const HIGH_FOREST_ID = "high-forest-quest";
 export const highForestController = {
@@ -22,9 +23,20 @@ export const gameLibrary: GameLibraryEntry[] = [
     minPlayers: 1,
     maxPlayers: 8,
   },
+  {
+    id: TRIVIA_RUSH_ID,
+    name: "Trivia Rush",
+    description: "Fast multiple-choice rounds. Answer first and correctly to score big.",
+    minPlayers: 1,
+    maxPlayers: 8,
+  },
 ];
 
-export const controllerForGame: Record<string, typeof quickDrawController | typeof highForestController> = {
+export const controllerForGame: Record<
+  string,
+  typeof quickDrawController | typeof highForestController | typeof triviaRushController
+> = {
   [QUICK_DRAW_ID]: quickDrawController,
   [HIGH_FOREST_ID]: highForestController,
+  [TRIVIA_RUSH_ID]: triviaRushController,
 };

@@ -199,6 +199,75 @@ body {
   color: var(--text-2);
 }
 
+.trivia-controller {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.trivia-status {
+  color: var(--text-1);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.9rem;
+}
+
+.trivia-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.trivia-btn {
+  min-height: 6rem;
+  border: none;
+  border-radius: 18px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  transition: transform 100ms ease, opacity 160ms ease;
+}
+
+.trivia-btn:active {
+  transform: scale(0.96);
+}
+
+.trivia-btn:disabled {
+  opacity: 0.55;
+}
+
+.trivia-a {
+  background: #e63946;
+}
+
+.trivia-b {
+  background: #0137f2;
+}
+
+.trivia-c {
+  background: #2ec4b6;
+}
+
+.trivia-d {
+  background: #f2b400;
+}
+
+.trivia-btn.selected {
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+}
+
+.trivia-btn.correct {
+  background: #22c55e !important;
+  opacity: 1;
+}
+
+.trivia-btn.incorrect {
+  background: #64748b !important;
+}
+
 .forest-controller {
   width: 100%;
   max-width: 390px;

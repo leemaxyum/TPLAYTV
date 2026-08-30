@@ -8,6 +8,7 @@ import type {
   QuickDrawStage,
   RoomCreatedPayload,
   RoomState,
+  TriviaStage,
 } from "../src/platform/types";
 
 const socket = connectSocket();
@@ -26,8 +27,15 @@ const resultsSection = document.getElementById("results-view")!;
 const gameTitleEl = document.getElementById("game-title")!;
 const gameStageEl = document.getElementById("game-stage")!;
 const highForestFrame = document.getElementById("high-forest-frame") as HTMLIFrameElement;
+const triviaViewEl = document.getElementById("trivia-view")!;
+const triviaProgressEl = document.getElementById("trivia-progress")!;
+const triviaPromptEl = document.getElementById("trivia-prompt")!;
+const triviaOptionsEl = document.getElementById("trivia-options")!;
 const resultsListEl = document.getElementById("results-list")!;
 const libraryBtn = document.getElementById("library-btn")!;
+
+const TRIVIA_RUSH_ID = "trivia-rush";
+const HIGH_FOREST_ID = "high-forest-quest";
 
 let library: GameLibraryEntry[] = [];
 let activeGameId: string | null = null;
@@ -317,31 +325,52 @@ socket.on("game:started", (payload: GameStartedPayload) => {
   const game = library.find((g) => g.id === payload.gameId);
   activeGameId = payload.gameId;
   gameTitleEl.textContent = game?.name ?? payload.gameId;
-  const isHighForest = payload.gameId === "high-forest-quest";
+
+  const isHighForest = payload.gameId === HIGH_FOREST_ID;
+  const isTrivia = payload.gameId === TRIVIA_RUSH_ID;
+
   highForestFrame.classList.toggle("hidden", !isHighForest);
-  gameStageEl.classList.toggle("hidden", isHighForest);
+  gameStageEl.classList.toggle("hidden", isHighForest || isTrivia);
+  triviaViewEl.classList.toggle("hidden", !isTrivia);
+
   if (isHighForest) {
     gameStageEl.textContent = "";
     highForestFrame.src = "/games/high-forest/index.html";
   } else {
     highForestFrame.src = "";
-    gameStageEl.textContent = "Get ready…";
+    if (!isTrivia) gameStageEl.textContent = "Get ready…";
   }
   showOnly(gameViewSection);
 });
 
 socket.on("game:input", (input: { action: string; pressed: boolean }) => {
-  if (activeGameId !== "high-forest-quest" || !highForestFrame.contentWindow) return;
+  if (activeGameId !== HIGH_FOREST_ID || !highForestFrame.contentWindow) return;
   highForestFrame.contentWindow.postMessage({ type: "remote-input", ...input }, window.location.origin);
 });
 
-socket.on("game:state", (state: QuickDrawStage) => {
+socket.on("game:state", (state: QuickDrawStage | TriviaStage) => {
   if (state.stage === "ready") {
     gameStageEl.textContent = "READY…";
     gameStageEl.className = "game-stage ready";
   } else if (state.stage === "go") {
     gameStageEl.textContent = "GO!";
     gameStageEl.className = "game-stage go";
+  } else if (state.stage === "question") {
+    triviaProgressEl.textContent = `Question ${state.questionIndex + 1} / ${state.totalQuestions}`;
+    triviaPromptEl.textContent = state.prompt;
+    triviaOptionsEl.innerHTML = "";
+    const labels = ["A", "B", "C", "D"];
+    state.options.forEach((option, i) => {
+      const div = document.createElement("div");
+      div.className = "trivia-option";
+      div.innerHTML = `<span class="trivia-option-label">${labels[i]}</span><span>${option}</span>`;
+      triviaOptionsEl.appendChild(div);
+    });
+  } else if (state.stage === "reveal") {
+    const options = triviaOptionsEl.querySelectorAll<HTMLDivElement>(".trivia-option");
+    options.forEach((el, i) => {
+      el.classList.toggle("correct", i === state.correctIndex);
+    });
   }
 });
 
@@ -349,11 +378,12 @@ socket.on("game:results", (payload: GameResultsPayload) => {
   resultsListEl.innerHTML = "";
   for (const r of payload.rankings) {
     const li = document.createElement("li");
-    const detail = r.falseStart
-      ? "false start"
-      : r.reactionMs !== null
-      ? `${r.reactionMs} ms`
-      : "no tap";
+    let detail: string;
+    if ("reactionMs" in r) {
+      detail = r.falseStart ? "false start" : r.reactionMs !== null ? `${r.reactionMs} ms` : "no tap";
+    } else {
+      detail = `${r.correctCount} correct — ${r.points} pts`;
+    }
     li.textContent = `${r.name} — ${detail}`;
     resultsListEl.appendChild(li);
   }

@@ -69,11 +69,31 @@ export type QuickDrawResult = {
 
 export type GameResultsPayload = {
   gameId: string;
-  rankings: QuickDrawResult[];
+  rankings: QuickDrawResult[] | TriviaResult[];
 };
 
 export type ControllerInputPayload = {
   action: string;
   pressed?: boolean;
   sequence?: number;
+};
+
+// --- Trivia Rush --------------------------------------------------------
+
+export type TriviaStage =
+  | {
+      stage: "question";
+      questionIndex: number;
+      totalQuestions: number;
+      prompt: string;
+      options: string[];
+      timeLimitMs: number;
+    }
+  | { stage: "reveal"; questionIndex: number; correctIndex: number };
+
+export type TriviaResult = {
+  playerId: string;
+  name: string;
+  correctCount: number;
+  points: number;
 };

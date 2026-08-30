@@ -30,6 +30,12 @@ import {
   handleQuickDrawInput,
   startQuickDraw,
 } from "./games/quickDraw.js";
+import {
+  TRIVIA_RUSH_ID,
+  cancelTriviaRush,
+  handleTriviaInput,
+  startTriviaRush,
+} from "./games/triviaRush.js";
 
 const PORT = Number(process.env.PORT ?? 5173);
 const LAN_IP = getLanIPv4();
@@ -109,6 +115,55 @@ async function main() {
       }
     );
 
+    // A phone that reloads or drops Wi-Fi briefly reconnects to its EXISTING
+    // player identity (and score) instead of joining as a brand-new player.
+    // The controller stores {code, playerId} in localStorage and tries this
+    // before falling back to a normal room:join.
+    socket.on(
+      "player:reconnect",
+      (raw: { code?: string; playerId?: string } = {}) => {
+        const code = typeof raw.code === "string" ? raw.code.toUpperCase() : "";
+        const room = getRoom(code);
+        if (!room) {
+          const err: ServerErrorPayload = {
+            code: "ROOM_NOT_FOUND",
+            message: "That room no longer exists.",
+          };
+          socket.emit("connection:error", err);
+          return;
+        }
+
+        const playerId = typeof raw.playerId === "string" ? raw.playerId : "";
+        if (!playerId || !reconnectPlayer(room, playerId)) {
+          const err: ServerErrorPayload = {
+            code: "PLAYER_NOT_FOUND",
+            message: "Couldn't reconnect — please join again.",
+          };
+          socket.emit("connection:error", err);
+          return;
+        }
+
+        socket.data.role = "controller";
+        socket.data.roomCode = room.code;
+        socket.data.playerId = playerId;
+        socket.join(room.code);
+
+        const payload: RoomJoinedPayload = { code: room.code, playerId };
+        socket.emit("room:joined", payload);
+        io.to(room.code).emit("room:state", toPublicState(room));
+
+        // If a game is already running, replay its controller config so the
+        // reconnecting phone shows the right buttons instead of the waiting screen.
+        if (room.phase === "playing" && room.gameId) {
+          const controller = controllerForGame[room.gameId];
+          if (controller) {
+            const startedPayload: GameStartedPayload = { gameId: room.gameId, controller };
+            socket.emit("game:started", startedPayload);
+          }
+        }
+      }
+    );
+
     socket.on("room:start-game", (raw: { gameId?: string } = {}) => {
       const roomCode = socket.data.roomCode as string | undefined;
       if (socket.data.role !== "host" || !roomCode) return;
@@ -136,6 +191,9 @@ async function main() {
       if (gameId === QUICK_DRAW_ID) {
         startQuickDraw(io, room);
       }
+      if (gameId === TRIVIA_RUSH_ID) {
+        startTriviaRush(io, room);
+      }
     });
 
     socket.on("controller:input", (raw: ControllerInputPayload = { action: "" }) => {
@@ -143,10 +201,20 @@ async function main() {
       const playerId = socket.data.playerId as string | undefined;
       if (socket.data.role !== "controller" || !roomCode || !playerId) return;
       const room = getRoom(roomCode);
-      if (!room || room.phase !== "playing") return;
+      if (!room || room.phase !== "playing" || !room.gameId) return;
+
+      // Defense in depth: never trust the client's action string. Every game's
+      // controller definition declares its valid buttons — reject anything else
+      // before it reaches game-specific logic.
+      if (typeof raw.action !== "string" || raw.action.length === 0) return;
+      const controller = controllerForGame[room.gameId];
+      if (!controller || !controller.buttons.includes(raw.action)) return;
 
       if (room.gameId === QUICK_DRAW_ID && raw.action === "tap") {
         handleQuickDrawInput(io, room, playerId);
+      }
+      if (room.gameId === TRIVIA_RUSH_ID) {
+        handleTriviaInput(io, room, playerId, raw.action);
       }
       if (room.gameId === HIGH_FOREST_ID && room.hostSocketId) {
         io.to(room.hostSocketId).emit("game:input", {
@@ -164,6 +232,7 @@ async function main() {
       if (!room) return;
 
       cancelQuickDraw(room.code);
+      cancelTriviaRush(room.code);
       room.phase = "lobby";
       room.gameId = null;
       io.to(room.code).emit("room:state", toPublicState(room));

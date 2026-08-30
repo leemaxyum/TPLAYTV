@@ -589,6 +589,78 @@ button {
 }
 
 /* ===================================================================
+   Trivia Rush
+   =================================================================== */
+
+.trivia-view {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.trivia-progress {
+  color: var(--text-1);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.trivia-prompt {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.trivia-options {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.trivia-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  font-weight: 600;
+  transition: background 300ms ease, border-color 300ms ease;
+}
+
+.trivia-option-label {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.trivia-option.correct {
+  background: rgba(52, 211, 153, 0.16);
+  border-color: var(--success);
+}
+
+.trivia-option.correct .trivia-option-label {
+  background: var(--success);
+  color: #04140d;
+}
+
+/* ===================================================================
    Results
    =================================================================== */
 
