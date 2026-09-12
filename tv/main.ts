@@ -27,6 +27,10 @@ const gameLibraryEl = document.getElementById("game-library")!;
 const lobbySection = document.getElementById("lobby")!;
 const gameViewSection = document.getElementById("game-view")!;
 const resultsSection = document.getElementById("results-view")!;
+const peopleSection = document.getElementById("people-view")!;
+const leaderboardSection = document.getElementById("leaderboard-view")!;
+const peopleListEl = document.getElementById("people-list")!;
+const leaderboardListEl = document.getElementById("leaderboard-list")!;
 const gameTitleEl = document.getElementById("game-title")!;
 const gameStageEl = document.getElementById("game-stage")!;
 const highForestFrame = document.getElementById("high-forest-frame") as HTMLIFrameElement;
@@ -247,13 +251,9 @@ document.querySelectorAll<HTMLButtonElement>(".nav-item[data-nav]").forEach((btn
       b.classList.toggle("active", b === btn);
     });
 
-    if (target === "home") {
-      document.getElementById("lobby-top")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else if (target === "games") {
-      document.getElementById("games")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else if (target === "players") {
-      document.getElementById("players")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    if (target === "home" || target === "games") showShellView(target);
+    else if (target === "players") showShellView("people");
+    else if (target === "leaderboard") showShellView("leaderboard");
   });
 });
 
@@ -340,7 +340,18 @@ socket.on("room:state", (room: RoomState) => {
     playerListEl.appendChild(li);
   }
 
-  if (room.phase === "lobby") showOnly(lobbySection);
+  peopleListEl.innerHTML = "";
+  leaderboardListEl.innerHTML = "";
+  for (const player of sorted) {
+    const person = document.createElement("li");
+    person.innerHTML = "<strong>" + player.name + "</strong><span>" + (player.connected ? "In room" : "Reconnecting…") + "</span>";
+    peopleListEl.appendChild(person);
+    const rank = document.createElement("li");
+    rank.innerHTML = "<strong>" + player.name + "</strong><span>" + player.score + " pts</span>";
+    leaderboardListEl.appendChild(rank);
+  }
+
+  if (room.phase === "lobby" && (shellView === "home" || shellView === "games")) showOnly(lobbySection);
 });
 
 socket.on("game:started", (payload: GameStartedPayload) => {
