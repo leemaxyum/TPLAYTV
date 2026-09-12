@@ -1,4 +1,4 @@
-# Stellar Play (Phase 1 + 3: rooms + Quick Draw)
+# Fleavo (Phase 1 + 3: rooms + Quick Draw)
 
 TV-first local multiplayer party game platform. Rooms/joining (Phase 1) and
 a first playable game, Quick Draw (Phase 3), are done. Phase 2's generic

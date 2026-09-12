@@ -86,7 +86,6 @@ function showOnly(section: HTMLElement) {
 // ===========================================================================
 
 const bootScreen = document.getElementById("boot-screen")!;
-const bootBar = document.getElementById("boot-progress-bar")!;
 const bootLabel = document.getElementById("boot-label")!;
 const appShell = document.getElementById("app-shell")!;
 
@@ -94,8 +93,7 @@ const BOOT_MIN_MS = 1600;
 const bootStartedAt = performance.now();
 let roomIsReady = false;
 
-function setBootProgress(percent: number, label?: string) {
-  bootBar.style.width = `${percent}%`;
+function setBootProgress(_percent: number, label?: string) {
   if (label) bootLabel.textContent = label;
 }
 
@@ -111,7 +109,7 @@ function finishBootIfReady() {
   }, remaining);
 }
 
-setBootProgress(12, "Starting Stellar Play…");
+setBootProgress(12, "Opening Fleavo…");
 
 // Safety net: never let the boot screen hang forever if something is slow
 // (e.g. first-run dependency install still finishing) — reveal the app
@@ -146,7 +144,7 @@ const DEFAULT_SETTINGS: Settings = {
   density: "comfortable",
 };
 
-const SETTINGS_KEY = "stellarplay:tv-settings";
+const SETTINGS_KEY = "fleavo:tv-settings";
 
 function loadSettings(): Settings {
   try {

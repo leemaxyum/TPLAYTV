@@ -51,7 +51,7 @@ function showOnly(section: HTMLElement) {
 // ===========================================================================
 
 type SavedSession = { code: string; playerId: string };
-const SESSION_KEY = "stellarplay:session";
+const SESSION_KEY = "fleavo:session";
 
 function loadSession(): SavedSession | null {
   try {
@@ -137,7 +137,7 @@ socket.on("connection:error", (err: ServerErrorPayload) => {
 });
 
 socket.on("disconnect", () => {
-  errorEl.textContent = "Lost connection to the host. Reconnecting…";
+  errorEl.textContent = "The room is reconnecting…";
 });
 
 socket.on("room:closed", (payload: RoomClosedPayload) => {
