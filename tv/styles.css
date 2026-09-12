@@ -788,6 +788,124 @@ button {
 }
 
 /* ===================================================================
+   Study space — intentionally calm and practical: a single shared board,
+   not a noisy social feed. It inherits the room's matte Fleavo palette.
+   =================================================================== */
+
+.study-view {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 3rem);
+}
+
+.study-heading {
+  max-width: 650px;
+  margin-bottom: 1.5rem;
+}
+
+.study-heading h2 {
+  margin: 0.2rem 0 0.55rem;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: -0.045em;
+}
+
+.study-heading p:last-child {
+  margin: 0;
+  color: var(--text-1);
+  line-height: 1.55;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.study-compose {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.22fr) 1fr auto;
+  gap: 0.7rem;
+  margin-bottom: 1.25rem;
+}
+
+.study-compose select,
+.study-compose input,
+.study-compose button {
+  min-height: 48px;
+  border-radius: 12px;
+  font: inherit;
+}
+
+.study-compose select,
+.study-compose input {
+  border: 1px solid var(--surface-border);
+  background: var(--bg-1);
+  color: var(--text-0);
+  padding: 0 0.9rem;
+}
+
+.study-compose input:focus,
+.study-compose select:focus,
+.study-item:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.study-compose button {
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  cursor: var(--cursor-hand);
+  font-weight: 800;
+  padding: 0 1.3rem;
+}
+
+.study-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.study-lane {
+  min-height: 240px;
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  background: var(--bg-1);
+  padding: 1rem;
+}
+
+.study-lane h3 {
+  margin: 0 0 0.8rem;
+  color: var(--text-1);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.study-item {
+  margin-top: 0.55rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: var(--text-0);
+  line-height: 1.45;
+  padding: 0.75rem;
+}
+
+.study-lane:last-child .study-item {
+  cursor: var(--cursor-hand);
+}
+
+.study-item.done {
+  color: var(--text-2);
+  text-decoration: line-through;
+}
+
+/* ===================================================================
    Settings overlay
    =================================================================== */
 
@@ -956,4 +1074,13 @@ button {
   .lobby-grid {
     grid-template-columns: 1fr;
   }
+
+  .study-board {
+    grid-template-columns: 1fr;
+  }
+
+  .study-compose {
+    grid-template-columns: 1fr;
+  }
 }
+
