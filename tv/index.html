@@ -100,6 +100,24 @@
           </div>
         </section>
 
+        <section id="study-view" class="channel study-view hidden" aria-labelledby="study-title">
+          <div class="study-heading">
+            <p class="eyebrow">Study space</p>
+            <h2 id="study-title">A shared board for the room</h2>
+            <p>Keep the next thought, question, or task visible without turning the room into a noisy feed.</p>
+          </div>
+          <div class="study-compose" aria-label="Add to the shared board">
+            <select id="study-lane" aria-label="Board column">
+              <option value="notes">Note</option>
+              <option value="ideas">Idea</option>
+              <option value="tasks">Task</option>
+            </select>
+            <input id="study-text" maxlength="280" placeholder="Write something useful…" aria-label="Board item" />
+            <button id="study-add-btn" type="button">Add</button>
+          </div>
+          <div id="study-board" class="study-board" aria-live="polite"></div>
+        </section>
+
         <section id="game-view" class="channel game-view hidden">
           <h2 id="game-title"></h2>
           <p id="game-stage" class="game-stage"></p>
@@ -151,7 +169,7 @@
               <span>Choose the look of the host screen.</span>
             </div>
             <div class="segmented" id="theme-picker">
-              <button type="button" data-value="stellar-dark">Stellar Dark</button>
+              <button type="button" data-value="stellar-dark">Fleavo</button>
               <button type="button" data-value="wii-light">Wii Light</button>
               <button type="button" data-value="midnight">Midnight</button>
             </div>
@@ -160,7 +178,7 @@
           <div class="setting-row">
             <div class="setting-copy">
               <strong>Pointer</strong>
-              <span>Use the Stellar hand cursor.</span>
+              <span>Use the Fleavo hand cursor.</span>
             </div>
             <label class="toggle">
               <input type="checkbox" id="cursor-toggle" checked />
@@ -196,3 +214,4 @@
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
+
