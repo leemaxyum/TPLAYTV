@@ -375,7 +375,7 @@ async function main() {
   app.use(vite.middlewares);
 
   httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`\nStellar Play running:\n`);
+    console.log(`\nFleavo running:\n`);
     console.log(`  Host (this PC): http://localhost:${PORT}/tv/`);
     console.log(`  LAN (for phones): http://${LAN_IP}:${PORT}/controller/\n`);
     if (LAN_IP === "localhost") {
