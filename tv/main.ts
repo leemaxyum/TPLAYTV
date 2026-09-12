@@ -54,6 +54,16 @@ const boosterRevealBtn = document.getElementById("booster-reveal-btn")!;
 const boosterNextBtn = document.getElementById("booster-next-btn")!;
 const boosterStatusEl = document.getElementById("booster-status")!;
 const boosterLiveEl = document.getElementById("booster-live")!;
+const builderTitleEl = document.getElementById("builder-title-input") as HTMLInputElement;
+const builderTopicEl = document.getElementById("builder-topic-input") as HTMLInputElement;
+const builderPromptEl = document.getElementById("builder-prompt") as HTMLTextAreaElement;
+const builderChoiceEls = Array.from(document.querySelectorAll<HTMLInputElement>("#builder-choices [data-choice]"));
+const builderExplanationEl = document.getElementById("builder-explanation") as HTMLTextAreaElement;
+const builderAddBtn = document.getElementById("builder-add-btn")!;
+const builderLoadBtn = document.getElementById("builder-load-btn")!;
+const builderClearBtn = document.getElementById("builder-clear-btn")!;
+const builderStatusEl = document.getElementById("builder-status")!;
+const builderDraftEl = document.getElementById("builder-draft")!;
 
 const TRIVIA_RUSH_ID = "trivia-rush";
 const COLOR_CLASH_ID = "color-clash";
@@ -63,6 +73,10 @@ const HIGH_FOREST_ID = "high-forest-quest";
 let library: GameLibraryEntry[] = [];
 let activeGameId: string | null = null;
 let fuseCountdownTimer: ReturnType<typeof setInterval> | null = null;
+let studyPersistenceReady = false;
+type BuilderQuestion = { id: string; prompt: string; choices: [string, string, string, string]; correctIndex: number; explanation: string };
+let builderQuestions: BuilderQuestion[] = [];
+const STUDY_STORAGE_KEY = "fleavo:host-study-board";
 
 // Fixed palette so avatar colors stay stable across re-renders/sorts.
 const AVATAR_COLORS = ["#0137f2", "#e63946", "#2ec4b6", "#fee500", "#ff6b35", "#8338ec", "#06d6a0", "#ef476f"];
@@ -298,6 +312,13 @@ socket.on("room:created", async (payload: RoomCreatedPayload) => {
   });
   roomIsReady = true; // boot progress
   finishBootIfReady(); // boot progress
+  setTimeout(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STUDY_STORAGE_KEY) ?? "[]");
+      if (Array.isArray(saved) && saved.length) socket.emit("study:replace", { items: saved });
+    } catch { /* a malformed local board is ignored */ }
+    studyPersistenceReady = true;
+  }, 60);
 });
 
 studyAddBtn.addEventListener("click", () => {
@@ -312,6 +333,9 @@ studyTextEl.addEventListener("keydown", (event) => {
 });
 
 socket.on("study:state", (board: { items: Array<{ id: string; lane: "notes" | "ideas" | "tasks"; text: string; done: boolean }> }) => {
+  if (studyPersistenceReady) {
+    try { localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify(board.items)); } catch { /* storage is optional */ }
+  }
   studyBoardEl.innerHTML = "";
   for (const lane of ["notes", "ideas", "tasks"] as const) {
     const column = document.createElement("section");
@@ -320,7 +344,15 @@ socket.on("study:state", (board: { items: Array<{ id: string; lane: "notes" | "i
     for (const item of board.items.filter((entry) => entry.lane === lane)) {
       const row = document.createElement("div");
       row.className = "study-item" + (item.done ? " done" : "");
-      row.textContent = item.text;
+      const label = document.createElement("span");
+      label.textContent = item.text;
+      row.appendChild(label);
+      const remove = document.createElement("button");
+      remove.className = "study-delete";
+      remove.type = "button";
+      remove.textContent = "Remove";
+      remove.addEventListener("click", (event) => { event.stopPropagation(); socket.emit("study:delete", { itemId: item.id }); });
+      row.appendChild(remove);
       if (lane === "tasks") {
         row.tabIndex = 0;
         row.setAttribute("role", "button");
@@ -346,6 +378,47 @@ boosterImportBtn.addEventListener("click", () => socket.emit("booster:import", {
 boosterStartBtn.addEventListener("click", () => socket.emit("booster:start"));
 boosterRevealBtn.addEventListener("click", () => socket.emit("booster:reveal"));
 boosterNextBtn.addEventListener("click", () => socket.emit("booster:next"));
+
+function renderBuilderDraft() {
+  builderDraftEl.innerHTML = "";
+  builderQuestions.forEach((question, index) => {
+    const item = document.createElement("li");
+    item.textContent = `${index + 1}. ${question.prompt}`;
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "Remove";
+    remove.addEventListener("click", () => { builderQuestions = builderQuestions.filter((entry) => entry.id !== question.id); renderBuilderDraft(); });
+    item.appendChild(remove);
+    builderDraftEl.appendChild(item);
+  });
+}
+
+function clearBuilderFields() {
+  builderPromptEl.value = "";
+  builderChoiceEls.forEach((choice) => (choice.value = ""));
+  builderExplanationEl.value = "";
+  (document.querySelector<HTMLInputElement>("#builder-choices input[type=radio][value='0']")!).checked = true;
+}
+
+builderAddBtn.addEventListener("click", () => {
+  const prompt = builderPromptEl.value.trim();
+  const choices = builderChoiceEls.map((choice) => choice.value.trim());
+  const explanation = builderExplanationEl.value.trim();
+  const correct = Number(document.querySelector<HTMLInputElement>("#builder-choices input[type=radio]:checked")?.value);
+  if (!prompt || choices.some((choice) => !choice) || !explanation) { builderStatusEl.textContent = "Add a question, four answers, and a short explanation."; return; }
+  if (builderQuestions.length >= 24) { builderStatusEl.textContent = "Keep a quiz to 24 questions or fewer."; return; }
+  builderQuestions.push({ id: crypto.randomUUID(), prompt, choices: choices as [string, string, string, string], correctIndex: correct, explanation });
+  clearBuilderFields();
+  builderStatusEl.textContent = `${builderQuestions.length} question${builderQuestions.length === 1 ? "" : "s"} ready to load.`;
+  renderBuilderDraft();
+});
+
+builderClearBtn.addEventListener("click", () => { builderQuestions = []; clearBuilderFields(); builderStatusEl.textContent = "Draft cleared."; renderBuilderDraft(); });
+builderLoadBtn.addEventListener("click", () => {
+  const title = builderTitleEl.value.trim();
+  if (!title || !builderQuestions.length) { builderStatusEl.textContent = "Give the quiz a title and add at least one question."; return; }
+  socket.emit("booster:import", { content: JSON.stringify({ version: 1, title, topic: builderTopicEl.value.trim() || undefined, questions: builderQuestions }) });
+});
 
 socket.on("booster:error", (message: string) => { boosterStatusEl.textContent = message; });
 socket.on("booster:state", (state: BoosterState) => {
@@ -530,5 +603,6 @@ resetSessionBtn.addEventListener("click", () => {
   highForestFrame.src = "";
   socket.emit("room:reset-session");
 });
+
 
 
