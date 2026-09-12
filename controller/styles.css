@@ -417,3 +417,9 @@ body {
   line-height: 1.45;
 }
 
+.booster-controller { width: 100%; max-width: 390px; text-align: center; }
+.booster-controller h2 { font-size: 1.2rem; line-height: 1.35; margin: 0.5rem 0 1rem; }
+.booster-controller .trivia-grid { grid-template-columns: 1fr; }
+.booster-controller .trivia-btn { min-height: 3.6rem; padding: 0.75rem; font-size: 0.95rem; }
+
+
