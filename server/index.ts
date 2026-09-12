@@ -46,6 +46,13 @@ import {
   handleColorClashInput,
   startColorClash,
 } from "./games/colorClash.js";
+import {
+  FUSE_FRENZY_ID,
+  cancelFuseFrenzy,
+  handleFuseFrenzyDisconnect,
+  handleFuseFrenzyInput,
+  startFuseFrenzy,
+} from "./games/fuseFrenzy.js";
 import type { InternalRoom } from "./roomStore.js";
 
 const PORT = Number(process.env.PORT ?? 5173);
@@ -89,6 +96,7 @@ function startGame(
   if (id === QUICK_DRAW_ID) startQuickDraw(io, room);
   if (id === TRIVIA_RUSH_ID) startTriviaRush(io, room);
   if (id === COLOR_CLASH_ID) startColorClash(io, room);
+  if (id === FUSE_FRENZY_ID) startFuseFrenzy(io, room);
   return null;
 }
 
@@ -267,6 +275,9 @@ async function main() {
       if (room.gameId === COLOR_CLASH_ID) {
         handleColorClashInput(io, room, playerId, raw.action);
       }
+      if (room.gameId === FUSE_FRENZY_ID && raw.action === "pass") {
+        handleFuseFrenzyInput(io, room, playerId);
+      }
       if (room.gameId === HIGH_FOREST_ID && room.hostSocketId) {
         io.to(room.hostSocketId).emit("game:input", {
           playerId,
@@ -285,6 +296,7 @@ async function main() {
       cancelQuickDraw(room.code);
       cancelTriviaRush(room.code);
       cancelColorClash(room.code);
+      cancelFuseFrenzy(room.code);
       room.phase = "lobby";
       room.gameId = null;
       io.to(room.code).emit("room:state", toPublicState(room));
@@ -316,6 +328,7 @@ async function main() {
       cancelQuickDraw(room.code);
       cancelTriviaRush(room.code);
       cancelColorClash(room.code);
+      cancelFuseFrenzy(room.code);
       room.players.forEach((player) => (player.score = 0));
       room.phase = "lobby";
       room.gameId = null;
@@ -332,6 +345,7 @@ async function main() {
         cancelQuickDraw(room.code);
         cancelTriviaRush(room.code);
         cancelColorClash(room.code);
+      cancelFuseFrenzy(room.code);
         const payload: RoomClosedPayload = {
           message: "The host left the room. Start a new room to keep playing.",
         };
@@ -345,6 +359,7 @@ async function main() {
 
       markDisconnected(room, playerId, () => {
         if (room.gameId === COLOR_CLASH_ID) handleColorClashDisconnect(io, room);
+        if (room.gameId === FUSE_FRENZY_ID) handleFuseFrenzyDisconnect(io, room, playerId);
         io.to(room.code).emit("room:state", toPublicState(room));
         deleteRoomIfEmpty(room);
       });
