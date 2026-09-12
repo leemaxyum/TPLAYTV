@@ -286,6 +286,30 @@ socket.on("room:created", async (payload: RoomCreatedPayload) => {
   finishBootIfReady(); // boot progress
 });
 
+studyAddBtn.addEventListener("click", () => {
+  const text = studyTextEl.value.trim();
+  if (!text) return;
+  socket.emit("study:add", { lane: studyLaneEl.value, text });
+  studyTextEl.value = "";
+});
+
+socket.on("study:state", (board: { items: Array<{ id: string; lane: "notes" | "ideas" | "tasks"; text: string; done: boolean }> }) => {
+  studyBoardEl.innerHTML = "";
+  for (const lane of ["notes", "ideas", "tasks"] as const) {
+    const column = document.createElement("section");
+    column.className = "study-lane";
+    column.innerHTML = "<h3>" + lane + "</h3>";
+    for (const item of board.items.filter((entry) => entry.lane === lane)) {
+      const row = document.createElement("div");
+      row.className = "study-item" + (item.done ? " done" : "");
+      row.textContent = item.text;
+      if (lane === "tasks") row.addEventListener("click", () => socket.emit("study:toggle-task", { itemId: item.id }));
+      column.appendChild(row);
+    }
+    studyBoardEl.appendChild(column);
+  }
+});
+
 socket.on("game:library", (games: GameLibraryEntry[]) => {
   library = games;
 
