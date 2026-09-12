@@ -9,8 +9,8 @@ A host-owned, LAN-synced Study Board with three calm lanes:
 
 The TV shows the board. Phones show the participant's current room state; host board editing is deliberately TV/host-only for this first slice.
 
-## Knowledge boosters next
-A host imports/reviews multiple-choice questions, then starts a paced quiz. Individual wrong answers remain private; the TV can show the prompt and aggregate progress, never a public failure list.
+## Knowledge boosters
+A host imports/reviews a version-1 multiple-choice JSON set, then runs a paced quiz with Load, Start, Reveal, and Next controls. Individual responses remain private; the TV shows the prompt and aggregate progress, never a public failure list. Import details live in `docs/KNOWLEDGE_BOOSTER_IMPORT.md`.
 
 ## Constraints
 - local-first, one room, no account
@@ -18,3 +18,4 @@ A host imports/reviews multiple-choice questions, then starts a paced quiz. Indi
 - no red wrong-answer state
 - server owns shared board data
 - High Forest Quest is untouched
+
