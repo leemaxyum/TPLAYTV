@@ -53,7 +53,7 @@ import {
   handleFuseFrenzyInput,
   startFuseFrenzy,
 } from "./games/fuseFrenzy.js";
-import { addStudyBoardItem, getStudyBoard, toggleStudyBoardTask, clearStudyBoard } from "./studyBoard.js";
+import { addStudyBoardItem, deleteStudyBoardItem, getStudyBoard, replaceStudyBoard, toggleStudyBoardTask, clearStudyBoard } from "./studyBoard.js";
 import {
   clearKnowledgeBooster,
   getKnowledgeState,
@@ -276,6 +276,22 @@ async function main() {
       io.to(room.code).emit("study:state", toggleStudyBoardTask(room.code, raw.itemId));
     });
 
+    socket.on("study:delete", (raw: { itemId?: string } = {}) => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode || typeof raw.itemId !== "string") return;
+      const room = getRoom(roomCode);
+      if (!room) return;
+      io.to(room.code).emit("study:state", deleteStudyBoardItem(room.code, raw.itemId));
+    });
+
+    socket.on("study:replace", (raw: { items?: unknown } = {}) => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode) return;
+      const room = getRoom(roomCode);
+      if (!room) return;
+      io.to(room.code).emit("study:state", replaceStudyBoard(room.code, raw.items));
+    });
+
     socket.on("booster:import", (raw: { content?: string } = {}) => {
       const roomCode = socket.data.roomCode as string | undefined;
       if (socket.data.role !== "host" || !roomCode || typeof raw.content !== "string" || raw.content.length > 30_000) return;
@@ -465,5 +481,6 @@ async function main() {
 }
 
 main();
+
 
 

@@ -38,16 +38,39 @@ const boosterPhoneProgressEl = document.getElementById("booster-phone-progress")
 const boosterPhonePromptEl = document.getElementById("booster-phone-prompt")!;
 const boosterPhoneChoicesEl = document.getElementById("booster-phone-choices")!;
 const boosterPhoneStatusEl = document.getElementById("booster-phone-status")!;
+const studyPhoneViewEl = document.getElementById("study-phone-view")!;
+const phoneStudyBoardEl = document.getElementById("phone-study-board")!;
+const profileViewEl = document.getElementById("profile-view")!;
+const helpViewEl = document.getElementById("help-view")!;
+const profileNameEl = document.getElementById("profile-name")!;
+const profileRoomEl = document.getElementById("profile-room")!;
+const profileScoreEl = document.getElementById("profile-score")!;
 
 let myPlayerId: string | null = null;
 let tapSequence = 0;
 let singleButtonAction = "tap";
 
 function showOnly(section: HTMLElement) {
-  for (const el of [waitingEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, boosterControllerEl, resultsViewEl]) {
+  for (const el of [waitingEl, studyPhoneViewEl, profileViewEl, helpViewEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, boosterControllerEl, resultsViewEl]) {
     el.classList.toggle("hidden", el !== section);
   }
 }
+
+function setPhoneNav(view: string) {
+  document.querySelectorAll<HTMLButtonElement>("[data-phone-nav]").forEach((button) => button.classList.toggle("active", button.dataset.phoneNav === view));
+}
+
+document.querySelectorAll<HTMLButtonElement>("[data-phone-nav]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const view = button.dataset.phoneNav;
+    if (view === "home") showOnly(waitingEl);
+    if (view === "study") showOnly(studyPhoneViewEl);
+    if (view === "profile") showOnly(profileViewEl);
+    if (view === "help") showOnly(helpViewEl);
+    if (view === "controller") showOnly(waitingEl);
+    setPhoneNav(view ?? "home");
+  });
+});
 
 // ===========================================================================
 // Reconnect — if this phone already joined a room (saved in localStorage),
@@ -123,6 +146,9 @@ socket.on("room:joined", (payload: RoomJoinedPayload) => {
   saveSession({ code: payload.code, playerId: payload.playerId });
   form.classList.add("hidden");
   showOnly(waitingEl);
+  profileRoomEl.textContent = payload.code;
+  profileNameEl.textContent = nameInput.value.trim() || "Participant";
+  setPhoneNav("home");
 });
 
 socket.on("connection:error", (err: ServerErrorPayload) => {
@@ -133,7 +159,7 @@ socket.on("connection:error", (err: ServerErrorPayload) => {
     if (attemptedReconnect) {
       clearSession();
       form.classList.remove("hidden");
-      for (const el of [waitingEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, resultsViewEl]) {
+      for (const el of [waitingEl, studyPhoneViewEl, profileViewEl, helpViewEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, boosterControllerEl, resultsViewEl]) {
         el.classList.add("hidden");
       }
       return;
@@ -146,12 +172,22 @@ socket.on("disconnect", () => {
   errorEl.textContent = "The room is reconnecting…";
 });
 
-socket.on("study:state", (board: { items: Array<{ lane: "notes" | "ideas" | "tasks"; done: boolean }> }) => {
+socket.on("study:state", (board: { items: Array<{ id: string; lane: "notes" | "ideas" | "tasks"; text: string; done: boolean }> }) => {
   const openTasks = board.items.filter((item) => item.lane === "tasks" && !item.done).length;
   const itemLabel = board.items.length === 1 ? "item" : "items";
   studySummaryEl.textContent = board.items.length
     ? `Shared study board: ${board.items.length} ${itemLabel}${openTasks ? ` · ${openTasks} task${openTasks === 1 ? "" : "s"} open` : ""}`
     : "The shared study board is ready when your host is.";
+  phoneStudyBoardEl.innerHTML = "";
+  for (const lane of ["notes", "ideas", "tasks"] as const) {
+    const column = document.createElement("section");
+    column.className = "phone-study-lane";
+    column.innerHTML = `<h2>${lane}</h2>`;
+    const entries = board.items.filter((item) => item.lane === lane);
+    if (!entries.length) { const empty = document.createElement("p"); empty.className = "empty-board"; empty.textContent = "Nothing here yet."; column.appendChild(empty); }
+    entries.forEach((item) => { const entry = document.createElement("p"); entry.className = item.done ? "done" : ""; entry.textContent = item.text; column.appendChild(entry); });
+    phoneStudyBoardEl.appendChild(column);
+  }
 });
 
 type BoosterPhoneState = { loaded: false } | { loaded: true; questionIndex: number; totalQuestions: number; phase: "idle" | "question" | "reveal" | "complete"; question: { prompt: string; choices: string[] } | null };
@@ -172,7 +208,7 @@ socket.on("room:closed", (payload: RoomClosedPayload) => {
   clearSession();
   myPlayerId = null;
   form.classList.remove("hidden");
-  for (const el of [waitingEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, resultsViewEl]) {
+  for (const el of [waitingEl, studyPhoneViewEl, profileViewEl, helpViewEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, boosterControllerEl, resultsViewEl]) {
     el.classList.add("hidden");
   }
   errorEl.textContent = payload.message;
@@ -180,10 +216,13 @@ socket.on("room:closed", (payload: RoomClosedPayload) => {
 
 socket.on("room:state", (room: RoomState) => {
   if (!myPlayerId) return;
+  const mine = room.players.find((player) => player.id === myPlayerId);
+  if (mine) { profileNameEl.textContent = mine.name; profileScoreEl.textContent = String(mine.score); }
   if (room.phase === "lobby") showOnly(waitingEl);
 });
 
 socket.on("game:started", (payload: GameStartedPayload) => {
+  setPhoneNav("controller");
   if (payload.gameId === "color-clash") {
     colorStatusEl.textContent = "Match the ink colour, not the word.";
     colorButtons.forEach((button) => { button.disabled = false; button.classList.remove("selected", "correct", "incorrect"); });
@@ -290,5 +329,6 @@ socket.on("game:results", (payload: GameResultsPayload) => {
   }
   showOnly(resultsViewEl);
 });
+
 
 

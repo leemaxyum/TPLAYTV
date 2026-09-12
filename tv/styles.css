@@ -887,6 +887,10 @@ button {
 }
 
 .study-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
   margin-top: 0.55rem;
   border: 1px solid var(--surface-border);
   border-radius: 10px;
@@ -895,6 +899,21 @@ button {
   line-height: 1.45;
   padding: 0.75rem;
 }
+
+.study-delete {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: var(--cursor-hand);
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 0.15rem 0;
+}
+
+.study-delete:hover { color: var(--accent); }
+.study-persistence { color: var(--text-2); font-size: 0.78rem; line-height: 1.4; }
 
 .study-lane:last-child .study-item {
   cursor: var(--cursor-hand);
@@ -912,6 +931,19 @@ button {
 }
 
 .booster-heading h3 { margin: 0.25rem 0 0.85rem; font-size: 1.35rem; }
+.booster-builder { border: 1px solid var(--surface-border); border-radius: 14px; background: var(--bg-1); padding: 1rem; }
+.booster-builder h4 { margin: 0 0 0.8rem; font-size: 1rem; }
+.builder-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.6rem; }
+.builder-meta input, .booster-builder textarea, .builder-choices input[type=text], .builder-choices input:not([type]) { width: 100%; border: 1px solid var(--surface-border); border-radius: 10px; background: var(--bg-0); color: var(--text-0); font: inherit; padding: 0.65rem; }
+.builder-choices { display: grid; gap: 0.45rem; margin: 0.65rem 0; }
+.builder-choices label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.55rem; }
+.builder-choices input[type=radio] { accent-color: var(--accent); }
+.builder-draft { display: grid; gap: 0.45rem; margin: 0.8rem 0 0; padding-left: 1.25rem; }
+.builder-draft li { display: flex; justify-content: space-between; gap: 0.65rem; align-items: center; color: var(--text-1); font-size: 0.85rem; }
+.builder-draft button { border: 0; background: transparent; color: var(--accent); cursor: var(--cursor-hand); font: inherit; font-size: 0.75rem; }
+.advanced-import { margin-top: 1rem; color: var(--text-1); }
+.advanced-import summary { cursor: var(--cursor-hand); font-size: 0.85rem; font-weight: 700; }
+.advanced-import textarea { margin-top: 0.65rem; }
 .knowledge-booster textarea { width: 100%; resize: vertical; border: 1px solid var(--surface-border); border-radius: 12px; background: var(--bg-1); color: var(--text-0); font: inherit; line-height: 1.45; padding: 0.8rem; }
 .booster-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.7rem; }
 .booster-actions button { min-height: 40px; border: 0; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); cursor: var(--cursor-hand); font-weight: 800; padding: 0 1rem; }
@@ -1104,6 +1136,8 @@ button {
   }
 
   .booster-choices { grid-template-columns: 1fr; }
+  .builder-meta { grid-template-columns: 1fr; }
 }
+
 
 
