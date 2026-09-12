@@ -116,3 +116,9 @@ export function deleteRoomIfEmpty(room: InternalRoom): void {
     rooms.delete(room.code);
   }
 }
+
+export function closeRoom(room: InternalRoom): void {
+  for (const timer of room.disconnectTimers.values()) clearTimeout(timer);
+  room.disconnectTimers.clear();
+  rooms.delete(room.code);
+}
