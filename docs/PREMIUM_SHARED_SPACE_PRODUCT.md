@@ -1,8 +1,8 @@
-# TPLAYTV: Premium Shared Space Product Direction
+# Fleavo: Premium Shared Space Product Direction
 
 ## Product promise
 
-TPLAYTV is a local-first shared space for student groups: a host can run games, quizzes, classes, study rooms, and events on one shared screen while every participant has a useful phone interface.
+Fleavo is a local-first shared space for student groups: a host can run games, quizzes, classes, study rooms, and events on one shared screen while every participant has a useful phone interface.
 
 The feeling is calm, intentional, and original—not an imitation of Apple, PlayStation, or any other brand. Premium means clear hierarchy, fewer but real actions, excellent empty states, and predictable feedback.
 
@@ -97,3 +97,4 @@ A phone is a participant app, not merely a remote control:
 - A participant can tell what they should do without asking the host.
 - Every navigation section has at least one useful primary task.
 - A host can run a quiz/class without disrupting people in another environment.
+
