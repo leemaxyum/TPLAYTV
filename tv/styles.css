@@ -660,6 +660,44 @@ button {
   color: #04140d;
 }
 
+.color-clash-view {
+  width: 100%;
+  min-height: 52vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.color-clash-progress,
+.color-clash-instruction {
+  margin: 0;
+  color: var(--text-1);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.color-clash-word {
+  margin: 0;
+  font-size: clamp(4rem, 15vw, 11rem);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.08em;
+  text-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+}
+
+.color-clash-reveal {
+  min-height: 1.5em;
+  margin: 0;
+  color: var(--success);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
 /* ===================================================================
    Results
    =================================================================== */
