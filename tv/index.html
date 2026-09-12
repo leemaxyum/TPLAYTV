@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stellar Play — TV</title>
+    <title>Fleavo — TV</title>
     <link rel="icon" type="image/webp" href="/assets/favicon.webp" />
     <link rel="preload" as="image" href="/assets/logo.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/assets/cursor-hand.png" />
@@ -14,25 +14,16 @@
          "console starting up" feel, then cross-fades into the dashboard. -->
     <div id="boot-screen" class="boot-screen" role="status" aria-live="polite">
       <div class="boot-logo-wrap">
-        <img src="/assets/logo.webp" class="boot-logo" width="220" height="165" alt="Stellar C&H" />
+        <div class="boot-wordmark">fleavo</div>
       </div>
       <div class="boot-progress"><div class="boot-progress-bar" id="boot-progress-bar"></div></div>
-      <p class="boot-label" id="boot-label">Starting Stellar Play…</p>
+      <p class="boot-label" id="boot-label">Starting Fleavo…</p>
     </div>
 
     <div class="app-shell" id="app-shell">
       <header class="topbar">
         <div class="brand">
-          <img
-            class="brand-logo"
-            src="/assets/logo.webp"
-            width="44"
-            height="33"
-            alt="Stellar C&H — Coding & Hackathon Club"
-            fetchpriority="high"
-            decoding="async"
-          />
-          <span class="brand-name">Stellar Play</span>
+          <span class="brand-wordmark">fleavo</span>
         </div>
         <nav class="nav">
           <button type="button" class="nav-item active" data-nav="home">
@@ -135,8 +126,8 @@
       </main>
 
       <footer class="statusbar">
-        <span>Stellar C&H — v0.1 alpha</span>
-        <span id="footer-hint">Pick a game above to get started</span>
+        <span>Fleavo — v0.1 alpha</span>
+        <span id="footer-hint">Open a room when everyone is ready</span>
       </footer>
     </div>
 
