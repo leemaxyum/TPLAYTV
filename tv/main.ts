@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import { connectSocket } from "../src/network/client";
 import type {
+  ColorClashStage,
   GameLibraryEntry,
   GameResultsPayload,
   GameStartedPayload,
@@ -32,12 +33,17 @@ const triviaViewEl = document.getElementById("trivia-view")!;
 const triviaProgressEl = document.getElementById("trivia-progress")!;
 const triviaPromptEl = document.getElementById("trivia-prompt")!;
 const triviaOptionsEl = document.getElementById("trivia-options")!;
+const colorClashViewEl = document.getElementById("color-clash-view")!;
+const colorClashProgressEl = document.getElementById("color-clash-progress")!;
+const colorClashWordEl = document.getElementById("color-clash-word")!;
+const colorClashRevealEl = document.getElementById("color-clash-reveal")!;
 const resultsListEl = document.getElementById("results-list")!;
 const replayBtn = document.getElementById("replay-btn")!;
 const libraryBtn = document.getElementById("library-btn")!;
 const resetSessionBtn = document.getElementById("reset-session-btn")!;
 
 const TRIVIA_RUSH_ID = "trivia-rush";
+const COLOR_CLASH_ID = "color-clash";
 const HIGH_FOREST_ID = "high-forest-quest";
 
 let library: GameLibraryEntry[] = [];
@@ -335,17 +341,19 @@ socket.on("game:started", (payload: GameStartedPayload) => {
 
   const isHighForest = payload.gameId === HIGH_FOREST_ID;
   const isTrivia = payload.gameId === TRIVIA_RUSH_ID;
+  const isColorClash = payload.gameId === COLOR_CLASH_ID;
 
   highForestFrame.classList.toggle("hidden", !isHighForest);
-  gameStageEl.classList.toggle("hidden", isHighForest || isTrivia);
+  gameStageEl.classList.toggle("hidden", isHighForest || isTrivia || isColorClash);
   triviaViewEl.classList.toggle("hidden", !isTrivia);
+  colorClashViewEl.classList.toggle("hidden", !isColorClash);
 
   if (isHighForest) {
     gameStageEl.textContent = "";
     highForestFrame.src = "/games/high-forest/index.html";
   } else {
     highForestFrame.src = "";
-    if (!isTrivia) gameStageEl.textContent = "Get ready…";
+    if (!isTrivia && !isColorClash) gameStageEl.textContent = "Get ready…";
   }
   showOnly(gameViewSection);
 });
@@ -355,8 +363,17 @@ socket.on("game:input", (input: { action: string; pressed: boolean }) => {
   highForestFrame.contentWindow.postMessage({ type: "remote-input", ...input }, window.location.origin);
 });
 
-socket.on("game:state", (state: QuickDrawStage | TriviaStage) => {
-  if (state.stage === "ready") {
+socket.on("game:state", (state: QuickDrawStage | TriviaStage | ColorClashStage) => {
+  if (state.stage === "color-question") {
+    colorClashProgressEl.textContent = "Round " + (state.questionIndex + 1) + " / " + state.totalQuestions;
+    colorClashWordEl.textContent = state.word.toUpperCase();
+    colorClashWordEl.style.color = state.inkColor;
+    colorClashRevealEl.textContent = "";
+  } else if (state.stage === "color-reveal") {
+    colorClashRevealEl.textContent = state.awards.length
+      ? state.awards.map((award) => award.name + " +" + award.points + (award.streakBonus ? " streak!" : "")).join(" · ")
+      : "No correct answers";
+  } else if (state.stage === "ready") {
     gameStageEl.textContent = "READY…";
     gameStageEl.className = "game-stage ready";
   } else if (state.stage === "go") {
