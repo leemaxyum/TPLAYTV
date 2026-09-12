@@ -8,6 +8,7 @@ import type {
   QuickDrawStage,
   RoomCreatedPayload,
   RoomState,
+  ServerErrorPayload,
   TriviaStage,
 } from "../src/platform/types";
 
@@ -252,6 +253,10 @@ socket.on("connect", () => {
 
 socket.on("disconnect", () => {
   statusEl.textContent = "Disconnected from server. Reconnecting…";
+});
+
+socket.on("connection:error", (err: ServerErrorPayload) => {
+  statusEl.textContent = err.message;
 });
 
 socket.on("room:created", async (payload: RoomCreatedPayload) => {
