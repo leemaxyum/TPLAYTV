@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import { resolve } from "node:path";
 
-// Phase 1: two entry pages, /tv and /controller.
+// Independent entry pages: recreation room host/phone and Hub Learn solo study.
 // The dev server itself is created programmatically in server/index.ts
 // (Vite runs in middleware mode inside our single Node process/Socket.IO server).
 export default defineConfig({
@@ -14,7 +14,9 @@ export default defineConfig({
         main: resolve(__dirname, "index.html"),
         tv: resolve(__dirname, "tv/index.html"),
         controller: resolve(__dirname, "controller/index.html"),
+        hub: resolve(__dirname, "hub/index.html"),
       },
     },
   },
 });
+
