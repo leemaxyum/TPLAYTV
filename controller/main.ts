@@ -2,6 +2,7 @@ import { connectSocket } from "../src/network/client";
 import type {
   ColorClashStage,
   ControllerInputPayload,
+  FuseFrenzyStage,
   GameResultsPayload,
   GameStartedPayload,
   RoomClosedPayload,
@@ -34,6 +35,7 @@ const forestControllerEl = document.getElementById("forest-controller")!;
 
 let myPlayerId: string | null = null;
 let tapSequence = 0;
+let singleButtonAction = "tap";
 
 function showOnly(section: HTMLElement) {
   for (const el of [waitingEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, resultsViewEl]) {
@@ -171,14 +173,15 @@ socket.on("game:started", (payload: GameStartedPayload) => {
     return;
   }
   if (payload.controller.type === "buttons" && payload.controller.buttons.length === 1) {
-    tapButton.textContent = payload.controller.buttons[0].toUpperCase();
+    singleButtonAction = payload.controller.buttons[0];
+    tapButton.textContent = singleButtonAction.toUpperCase();
   }
   tapButton.disabled = false;
   showOnly(controllerViewEl);
 });
 
 tapButton.addEventListener("click", () => {
-  const input: ControllerInputPayload = { action: "tap", sequence: tapSequence++ };
+  const input: ControllerInputPayload = { action: singleButtonAction, sequence: tapSequence++ };
   socket.emit("controller:input", input);
   tapButton.disabled = true;
 });
@@ -201,8 +204,13 @@ colorButtons.forEach((button) => {
   });
 });
 
-socket.on("game:state", (state: TriviaStage | ColorClashStage) => {
-  if (state.stage === "color-question") {
+socket.on("game:state", (state: TriviaStage | ColorClashStage | FuseFrenzyStage) => {
+  if (state.stage === "fuse-turn") {
+    tapButton.disabled = state.holderId !== myPlayerId;
+    tapButton.textContent = state.holderId === myPlayerId ? "PASS" : "WAIT";
+  } else if (state.stage === "fuse-eliminated") {
+    tapButton.disabled = true;
+  } else if (state.stage === "color-question") {
     colorStatusEl.textContent = "Round " + (state.questionIndex + 1) + " / " + state.totalQuestions + " — match the ink";
     colorButtons.forEach((button) => {
       button.disabled = false;
