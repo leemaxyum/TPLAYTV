@@ -73,7 +73,7 @@ export type QuickDrawResult = {
 
 export type GameResultsPayload = {
   gameId: string;
-  rankings: QuickDrawResult[] | TriviaResult[];
+  rankings: QuickDrawResult[] | TriviaResult[] | ColorClashResult[];
 };
 
 export type ControllerInputPayload = {
@@ -100,4 +100,32 @@ export type TriviaResult = {
   name: string;
   correctCount: number;
   points: number;
+};
+
+// --- Color Clash -------------------------------------------------------
+
+export type ColorName = "red" | "blue" | "green" | "yellow";
+
+export type ColorClashStage =
+  | {
+      stage: "color-question";
+      questionIndex: number;
+      totalQuestions: number;
+      word: ColorName;
+      inkColor: ColorName;
+      choices: ColorName[];
+      timeLimitMs: number;
+    }
+  | {
+      stage: "color-reveal";
+      questionIndex: number;
+      correctColor: ColorName;
+      awards: Array<{ playerId: string; name: string; points: number; streakBonus: boolean }>;
+    };
+
+export type ColorClashResult = {
+  playerId: string;
+  name: string;
+  points: number;
+  correctCount: number;
 };
