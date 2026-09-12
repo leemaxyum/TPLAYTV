@@ -945,3 +945,12 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+.section-view { max-width: 860px; margin: 0 auto; }
+.eyebrow { margin: 0 0 .35rem; color: var(--accent); font-weight: 800; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; }
+.section-view h2 { margin: 0 0 .35rem; font-size: clamp(1.5rem, 3vw, 2.25rem); }
+.section-view .sub { margin: 0 0 1.25rem; color: var(--text-1); }
+.people-list, .leaderboard-list { display: grid; gap: .65rem; margin: 0; padding: 0; list-style: none; }
+.people-list li, .leaderboard-list li { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem 1rem; border:1px solid var(--surface-border); border-radius:14px; background:var(--surface-strong); }
+.leaderboard-list { counter-reset: rank; }
+.leaderboard-list li::before { counter-increment:rank; content:counter(rank); color:var(--text-2); font-weight:800; }
