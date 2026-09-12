@@ -31,6 +31,7 @@ export function parseKnowledgeSet(raw: unknown): KnowledgeSet | { error: string 
     return { error: "Use version 1 with a title and 1–24 questions." };
   }
   const questions: KnowledgeQuestion[] = [];
+  const questionIds = new Set<string>();
   for (const entry of value.questions) {
     if (!entry || typeof entry !== "object") return { error: "Every question must be an object." };
     const question = entry as Record<string, unknown>;
@@ -38,9 +39,10 @@ export function parseKnowledgeSet(raw: unknown): KnowledgeSet | { error: string 
     const prompt = asText(question.prompt, 600);
     const explanation = asText(question.explanation, 600);
     const choices = Array.isArray(question.choices) ? question.choices.map((choice) => asText(choice, 180)) : [];
-    if (!id || !prompt || !explanation || choices.length !== 4 || choices.some((choice) => !choice) || !Number.isInteger(question.correctIndex) || (question.correctIndex as number) < 0 || (question.correctIndex as number) > 3) {
+    if (!id || !prompt || !explanation || questionIds.has(id) || choices.length !== 4 || choices.some((choice) => !choice) || !Number.isInteger(question.correctIndex) || (question.correctIndex as number) < 0 || (question.correctIndex as number) > 3) {
       return { error: "Each question needs an id, prompt, four choices, correctIndex (0–3), and explanation." };
     }
+    questionIds.add(id);
     questions.push({ id, prompt, choices: choices as [string, string, string, string], correctIndex: question.correctIndex as number, explanation });
   }
   return { version: 1, title, topic: asText(value.topic, 80) ?? undefined, audience: asText(value.audience, 100) ?? undefined, questions };
@@ -71,7 +73,7 @@ export function getKnowledgeState(roomCode: string) {
 
 export function startKnowledgeQuestion(roomCode: string) {
   const booster = boosters.get(roomCode);
-  if (!booster || booster.phase === "complete") return getKnowledgeState(roomCode);
+  if (!booster || booster.phase !== "idle") return getKnowledgeState(roomCode);
   booster.phase = "question";
   booster.answers.clear();
   return getKnowledgeState(roomCode);

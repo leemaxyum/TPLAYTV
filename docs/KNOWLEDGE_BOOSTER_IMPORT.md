@@ -53,6 +53,7 @@ This is the import format for AI-assisted course content. It is intentionally sm
 - No public wrong-answer list, accuracy ranking, or permanent learner profile is created.
 - Closing the room clears the in-memory study board and imported quiz data.
 
-## Ready-to-build acceptance criteria
+## Implemented behaviour
 
-A first implementation is ready when a host can import valid JSON, preview a set, start a question, see an aggregate response count, reveal the answer, and advance; each phone can answer once per question and see private confirmation.
+The current LAN implementation validates a 1–24-question set, lets the host load it, start a question, see an aggregate response count, reveal the answer, and advance. Each phone can answer once per question and sees private confirmation. A real-device checklist is in `docs/REAL_DEVICE_PLAYTEST.md`.
+
