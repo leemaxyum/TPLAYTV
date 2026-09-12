@@ -699,6 +699,25 @@ button {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
 }
 
+.results-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+.results-view button.secondary {
+  background: var(--surface-strong);
+  color: var(--text-0);
+  border: 1px solid var(--surface-border);
+}
+
+.results-view button.quiet {
+  background: transparent;
+  color: var(--text-1);
+  border: 1px solid var(--surface-border);
+}
+
 /* ===================================================================
    Footer
    =================================================================== */
