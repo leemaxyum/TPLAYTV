@@ -19,6 +19,8 @@ const roomCodeInput = document.getElementById("room-code") as HTMLInputElement;
 const nameInput = document.getElementById("name") as HTMLInputElement;
 const errorEl = document.getElementById("error")!;
 const waitingEl = document.getElementById("waiting")!;
+const participantNameEl = document.getElementById("participant-name")!;
+const participantStatusEl = document.getElementById("participant-status")!;
 const controllerViewEl = document.getElementById("controller-view")!;
 const triviaControllerEl = document.getElementById("trivia-controller")!;
 const triviaStatusEl = document.getElementById("trivia-status")!;
@@ -115,6 +117,8 @@ socket.on("connect", () => {
 socket.on("room:joined", (payload: RoomJoinedPayload) => {
   myPlayerId = payload.playerId;
   saveSession({ code: payload.code, playerId: payload.playerId });
+  participantNameEl.textContent = nameInput.value.trim() || "You're in";
+  participantStatusEl.textContent = "Connected to room " + payload.code + ". Waiting for the host…";
   form.classList.add("hidden");
   showOnly(waitingEl);
 });
@@ -152,7 +156,11 @@ socket.on("room:closed", (payload: RoomClosedPayload) => {
 
 socket.on("room:state", (room: RoomState) => {
   if (!myPlayerId) return;
-  if (room.phase === "lobby") showOnly(waitingEl);
+  if (room.phase === "lobby") {
+    const me = room.players.find((player) => player.id === myPlayerId);
+    participantStatusEl.textContent = (me?.connected ? "You’re connected" : "Reconnecting…") + " · " + room.players.length + " participants in room";
+    showOnly(waitingEl);
+  }
 });
 
 socket.on("game:started", (payload: GameStartedPayload) => {
