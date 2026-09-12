@@ -3,6 +3,7 @@ import type {
   ControllerInputPayload,
   GameResultsPayload,
   GameStartedPayload,
+  RoomClosedPayload,
   RoomJoinedPayload,
   RoomState,
   ServerErrorPayload,
@@ -131,6 +132,16 @@ socket.on("connection:error", (err: ServerErrorPayload) => {
 
 socket.on("disconnect", () => {
   errorEl.textContent = "Lost connection to the host. Reconnecting…";
+});
+
+socket.on("room:closed", (payload: RoomClosedPayload) => {
+  clearSession();
+  myPlayerId = null;
+  form.classList.remove("hidden");
+  for (const el of [waitingEl, controllerViewEl, triviaControllerEl, forestControllerEl, resultsViewEl]) {
+    el.classList.add("hidden");
+  }
+  errorEl.textContent = payload.message;
 });
 
 socket.on("room:state", (room: RoomState) => {
