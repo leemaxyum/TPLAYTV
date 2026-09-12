@@ -248,6 +248,7 @@ async function main() {
     socket.on("study:add", (raw: { lane?: "notes" | "ideas" | "tasks"; text?: string } = {}) => {
       const roomCode = socket.data.roomCode as string | undefined;
       if (socket.data.role !== "host" || !roomCode || !raw.lane || typeof raw.text !== "string" || !raw.text.trim()) return;
+      if (!(["notes", "ideas", "tasks"] as const).includes(raw.lane)) return;
       const room = getRoom(roomCode);
       if (!room) return;
       io.to(room.code).emit("study:state", addStudyBoardItem(room.code, raw.lane, raw.text));
@@ -364,7 +365,8 @@ async function main() {
         cancelQuickDraw(room.code);
         cancelTriviaRush(room.code);
         cancelColorClash(room.code);
-      cancelFuseFrenzy(room.code);
+        cancelFuseFrenzy(room.code);
+        clearStudyBoard(room.code);
         const payload: RoomClosedPayload = {
           message: "The host left the room. Start a new room to keep playing.",
         };
@@ -406,3 +408,4 @@ async function main() {
 }
 
 main();
+
