@@ -47,6 +47,13 @@ const studyBoardEl = document.getElementById("study-board")!;
 const studyTextEl = document.getElementById("study-text") as HTMLInputElement;
 const studyLaneEl = document.getElementById("study-lane") as HTMLSelectElement;
 const studyAddBtn = document.getElementById("study-add-btn")!;
+const boosterImportEl = document.getElementById("booster-import") as HTMLTextAreaElement;
+const boosterImportBtn = document.getElementById("booster-import-btn")!;
+const boosterStartBtn = document.getElementById("booster-start-btn")!;
+const boosterRevealBtn = document.getElementById("booster-reveal-btn")!;
+const boosterNextBtn = document.getElementById("booster-next-btn")!;
+const boosterStatusEl = document.getElementById("booster-status")!;
+const boosterLiveEl = document.getElementById("booster-live")!;
 
 const TRIVIA_RUSH_ID = "trivia-rush";
 const COLOR_CLASH_ID = "color-clash";
@@ -333,6 +340,31 @@ socket.on("study:state", (board: { items: Array<{ id: string; lane: "notes" | "i
   }
 });
 
+type BoosterState = { loaded: false } | { loaded: true; title: string; topic?: string; audience?: string; questionIndex: number; totalQuestions: number; phase: "idle" | "question" | "reveal" | "complete"; question: { prompt: string; choices: string[] } | null; responseCount: number; correctIndex?: number; explanation?: string };
+
+boosterImportBtn.addEventListener("click", () => socket.emit("booster:import", { content: boosterImportEl.value }));
+boosterStartBtn.addEventListener("click", () => socket.emit("booster:start"));
+boosterRevealBtn.addEventListener("click", () => socket.emit("booster:reveal"));
+boosterNextBtn.addEventListener("click", () => socket.emit("booster:next"));
+
+socket.on("booster:error", (message: string) => { boosterStatusEl.textContent = message; });
+socket.on("booster:state", (state: BoosterState) => {
+  if (!state.loaded) { boosterStatusEl.textContent = "Load a small course set to begin. Phone answers stay private."; boosterLiveEl.innerHTML = ""; return; }
+  boosterImportEl.value = "";
+  boosterStartBtn.toggleAttribute("disabled", state.phase !== "idle");
+  boosterRevealBtn.toggleAttribute("disabled", state.phase !== "question");
+  boosterNextBtn.toggleAttribute("disabled", state.phase !== "reveal");
+  const position = `Question ${state.questionIndex + 1} of ${state.totalQuestions}`;
+  boosterStatusEl.textContent = state.phase === "complete" ? `${state.title} is complete.` : `${state.title} · ${position} · ${state.responseCount} response${state.responseCount === 1 ? "" : "s"}`;
+  boosterLiveEl.innerHTML = "";
+  if (!state.question) return;
+  const prompt = document.createElement("h4"); prompt.textContent = state.question.prompt; boosterLiveEl.appendChild(prompt);
+  const choices = document.createElement("ol"); choices.className = "booster-choices";
+  state.question.choices.forEach((choice, index) => { const item = document.createElement("li"); item.textContent = choice; if (state.phase === "reveal" && state.correctIndex === index) item.className = "correct"; choices.appendChild(item); });
+  boosterLiveEl.appendChild(choices);
+  if (state.phase === "reveal" && state.explanation) { const explanation = document.createElement("p"); explanation.className = "booster-explanation"; explanation.textContent = state.explanation; boosterLiveEl.appendChild(explanation); }
+});
+
 socket.on("game:library", (games: GameLibraryEntry[]) => {
   library = games;
 
@@ -498,4 +530,5 @@ resetSessionBtn.addEventListener("click", () => {
   highForestFrame.src = "";
   socket.emit("room:reset-session");
 });
+
 

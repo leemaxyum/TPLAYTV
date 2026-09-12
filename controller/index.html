@@ -84,6 +84,13 @@
         <div class="action-grid"><button data-action="jump">JUMP</button><button data-action="fire">FIRE</button><button data-action="sprint">SPRINT</button><button data-action="grapple">GRAPPLE</button></div>
       </section>
 
+      <section id="booster-controller" class="booster-controller hidden" aria-label="Knowledge Booster question">
+        <p id="booster-phone-progress" class="trivia-status"></p>
+        <h2 id="booster-phone-prompt"></h2>
+        <div id="booster-phone-choices" class="trivia-grid"></div>
+        <p id="booster-phone-status" class="trivia-status"></p>
+      </section>
+
       <section id="results-view" class="results-view hidden card">
         <p class="status" id="result-text"></p>
         <p class="status">Waiting for the host…</p>
@@ -112,4 +119,5 @@
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
+
 

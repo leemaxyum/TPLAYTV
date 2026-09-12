@@ -54,6 +54,16 @@ import {
   startFuseFrenzy,
 } from "./games/fuseFrenzy.js";
 import { addStudyBoardItem, getStudyBoard, toggleStudyBoardTask, clearStudyBoard } from "./studyBoard.js";
+import {
+  clearKnowledgeBooster,
+  getKnowledgeState,
+  importKnowledgeSet,
+  nextKnowledgeQuestion,
+  parseKnowledgeSet,
+  revealKnowledgeQuestion,
+  startKnowledgeQuestion,
+  submitKnowledgeAnswer,
+} from "./knowledgeBooster.js";
 import type { InternalRoom } from "./roomStore.js";
 
 const PORT = Number(process.env.PORT ?? 5173);
@@ -128,6 +138,7 @@ async function main() {
       socket.emit("room:state", toPublicState(room));
       socket.emit("game:library", gameLibrary);
       socket.emit("study:state", getStudyBoard(room.code));
+      socket.emit("booster:state", getKnowledgeState(room.code));
     });
 
     socket.on(
@@ -193,6 +204,7 @@ async function main() {
         socket.emit("room:joined", payload);
         io.to(room.code).emit("room:state", toPublicState(room));
         socket.emit("study:state", getStudyBoard(room.code));
+        socket.emit("booster:state", getKnowledgeState(room.code));
       }
     );
 
@@ -232,6 +244,8 @@ async function main() {
         const payload: RoomJoinedPayload = { code: room.code, playerId };
         socket.emit("room:joined", payload);
         io.to(room.code).emit("room:state", toPublicState(room));
+        socket.emit("study:state", getStudyBoard(room.code));
+        socket.emit("booster:state", getKnowledgeState(room.code));
 
         // If a game is already running, replay its controller config so the
         // reconnecting phone shows the right buttons instead of the waiting screen.
@@ -260,6 +274,48 @@ async function main() {
       const room = getRoom(roomCode);
       if (!room) return;
       io.to(room.code).emit("study:state", toggleStudyBoardTask(room.code, raw.itemId));
+    });
+
+    socket.on("booster:import", (raw: { content?: string } = {}) => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode || typeof raw.content !== "string" || raw.content.length > 30_000) return;
+      try {
+        const parsed = parseKnowledgeSet(JSON.parse(raw.content));
+        if ("error" in parsed) {
+          socket.emit("booster:error", parsed.error);
+          return;
+        }
+        io.to(roomCode).emit("booster:state", importKnowledgeSet(roomCode, parsed));
+      } catch {
+        socket.emit("booster:error", "That import is not valid JSON.");
+      }
+    });
+
+    socket.on("booster:start", () => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode) return;
+      io.to(roomCode).emit("booster:state", startKnowledgeQuestion(roomCode));
+    });
+
+    socket.on("booster:reveal", () => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode) return;
+      io.to(roomCode).emit("booster:state", revealKnowledgeQuestion(roomCode));
+    });
+
+    socket.on("booster:next", () => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode) return;
+      io.to(roomCode).emit("booster:state", nextKnowledgeQuestion(roomCode));
+    });
+
+    socket.on("booster:answer", (raw: { choiceIndex?: number } = {}) => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      const playerId = socket.data.playerId as string | undefined;
+      if (socket.data.role !== "controller" || !roomCode || !playerId) return;
+      const accepted = submitKnowledgeAnswer(roomCode, playerId, raw.choiceIndex);
+      socket.emit("booster:answer-status", { accepted });
+      if (accepted) io.to(roomCode).emit("booster:state", getKnowledgeState(roomCode));
     });
 
     socket.on("room:start-game", (raw: { gameId?: string } = {}) => {
@@ -367,6 +423,7 @@ async function main() {
         cancelColorClash(room.code);
         cancelFuseFrenzy(room.code);
         clearStudyBoard(room.code);
+        clearKnowledgeBooster(room.code);
         const payload: RoomClosedPayload = {
           message: "The host left the room. Start a new room to keep playing.",
         };
@@ -408,4 +465,5 @@ async function main() {
 }
 
 main();
+
 
