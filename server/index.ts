@@ -39,9 +39,50 @@ import {
   handleTriviaInput,
   startTriviaRush,
 } from "./games/triviaRush.js";
+import type { InternalRoom } from "./roomStore.js";
 
 const PORT = Number(process.env.PORT ?? 5173);
 const LAN_IP = getLanIPv4();
+
+function startGame(
+  io: SocketIOServer,
+  room: InternalRoom,
+  gameId: unknown
+): ServerErrorPayload | null {
+  if (room.phase === "playing") {
+    return {
+      code: "GAME_IN_PROGRESS",
+      message: "Finish the current game before starting another one.",
+    };
+  }
+
+  const id = typeof gameId === "string" ? gameId : "";
+  const controller = controllerForGame[id];
+  const game = gameLibrary.find((entry) => entry.id === id);
+  if (!controller || !game) {
+    return { code: "UNKNOWN_GAME", message: "That game doesn't exist." };
+  }
+
+  const connectedPlayers = room.players.filter((player) => player.connected).length;
+  if (connectedPlayers < game.minPlayers) {
+    return {
+      code: "NOT_ENOUGH_PLAYERS",
+      message: `${game.name} needs at least ${game.minPlayers} player${game.minPlayers === 1 ? "" : "s"}.`,
+    };
+  }
+  if (connectedPlayers > game.maxPlayers) {
+    return { code: "TOO_MANY_PLAYERS", message: `${game.name} supports up to ${game.maxPlayers} players.` };
+  }
+
+  room.phase = "playing";
+  room.gameId = id;
+  io.to(room.code).emit("game:started", { gameId: id, controller } satisfies GameStartedPayload);
+  io.to(room.code).emit("room:state", toPublicState(room));
+
+  if (id === QUICK_DRAW_ID) startQuickDraw(io, room);
+  if (id === TRIVIA_RUSH_ID) startTriviaRush(io, room);
+  return null;
+}
 
 async function main() {
   const app = express();
@@ -191,50 +232,8 @@ async function main() {
       const room = getRoom(roomCode);
       if (!room) return;
 
-      const gameId = raw.gameId;
-      const controller = gameId ? controllerForGame[gameId] : undefined;
-      const game = gameId ? gameLibrary.find((entry) => entry.id === gameId) : undefined;
-      if (!gameId || !controller || !game) {
-        const err: ServerErrorPayload = {
-          code: "UNKNOWN_GAME",
-          message: "That game doesn't exist.",
-        };
-        socket.emit("connection:error", err);
-        return;
-      }
-
-      const connectedPlayers = room.players.filter((player) => player.connected).length;
-      if (connectedPlayers < game.minPlayers) {
-        const err: ServerErrorPayload = {
-          code: "NOT_ENOUGH_PLAYERS",
-          message: `${game.name} needs at least ${game.minPlayers} player${game.minPlayers === 1 ? "" : "s"}.`,
-        };
-        socket.emit("connection:error", err);
-        return;
-      }
-
-      if (connectedPlayers > game.maxPlayers) {
-        const err: ServerErrorPayload = {
-          code: "TOO_MANY_PLAYERS",
-          message: `${game.name} supports up to ${game.maxPlayers} players.`,
-        };
-        socket.emit("connection:error", err);
-        return;
-      }
-
-      room.phase = "playing";
-      room.gameId = gameId;
-
-      const payload: GameStartedPayload = { gameId, controller };
-      io.to(room.code).emit("game:started", payload);
-      io.to(room.code).emit("room:state", toPublicState(room));
-
-      if (gameId === QUICK_DRAW_ID) {
-        startQuickDraw(io, room);
-      }
-      if (gameId === TRIVIA_RUSH_ID) {
-        startTriviaRush(io, room);
-      }
+      const err = startGame(io, room, raw.gameId);
+      if (err) socket.emit("connection:error", err);
     });
 
     socket.on("controller:input", (raw: ControllerInputPayload = { action: "" }) => {
