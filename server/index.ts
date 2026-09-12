@@ -278,6 +278,37 @@ async function main() {
       io.to(room.code).emit("room:state", toPublicState(room));
     });
 
+    socket.on("room:play-again", () => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode) return;
+      const room = getRoom(roomCode);
+      if (!room || room.phase !== "results" || !room.gameId) return;
+
+      const err = startGame(io, room, room.gameId);
+      if (err) socket.emit("connection:error", err);
+    });
+
+    socket.on("room:reset-session", () => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode) return;
+      const room = getRoom(roomCode);
+      if (!room) return;
+      if (room.phase === "playing") {
+        socket.emit("connection:error", {
+          code: "GAME_IN_PROGRESS",
+          message: "Finish the current game before starting a new session.",
+        } satisfies ServerErrorPayload);
+        return;
+      }
+
+      cancelQuickDraw(room.code);
+      cancelTriviaRush(room.code);
+      room.players.forEach((player) => (player.score = 0));
+      room.phase = "lobby";
+      room.gameId = null;
+      io.to(room.code).emit("room:state", toPublicState(room));
+    });
+
     socket.on("disconnect", () => {
       const roomCode = socket.data.roomCode as string | undefined;
       if (!roomCode) return;
