@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 import { getLanIPv4 } from "./lan.js";
 import {
   addPlayer,
+  closeRoom,
   createRoom,
   deleteRoomIfEmpty,
   getRoom,
@@ -21,6 +22,7 @@ import type {
   ControllerInputPayload,
   GameStartedPayload,
   RoomCreatedPayload,
+  RoomClosedPayload,
   RoomJoinedPayload,
   ServerErrorPayload,
 } from "../src/platform/types.js";
@@ -88,6 +90,15 @@ async function main() {
           const err: ServerErrorPayload = {
             code: "INVALID_NAME",
             message: "Enter a name (1-20 characters).",
+          };
+          socket.emit("connection:error", err);
+          return;
+        }
+
+        if (room.phase === "playing") {
+          const err: ServerErrorPayload = {
+            code: "GAME_IN_PROGRESS",
+            message: "A game is in progress. Join when this round ends.",
           };
           socket.emit("connection:error", err);
           return;
@@ -182,10 +193,30 @@ async function main() {
 
       const gameId = raw.gameId;
       const controller = gameId ? controllerForGame[gameId] : undefined;
-      if (!gameId || !controller) {
+      const game = gameId ? gameLibrary.find((entry) => entry.id === gameId) : undefined;
+      if (!gameId || !controller || !game) {
         const err: ServerErrorPayload = {
           code: "UNKNOWN_GAME",
           message: "That game doesn't exist.",
+        };
+        socket.emit("connection:error", err);
+        return;
+      }
+
+      const connectedPlayers = room.players.filter((player) => player.connected).length;
+      if (connectedPlayers < game.minPlayers) {
+        const err: ServerErrorPayload = {
+          code: "NOT_ENOUGH_PLAYERS",
+          message: `${game.name} needs at least ${game.minPlayers} player${game.minPlayers === 1 ? "" : "s"}.`,
+        };
+        socket.emit("connection:error", err);
+        return;
+      }
+
+      if (connectedPlayers > game.maxPlayers) {
+        const err: ServerErrorPayload = {
+          code: "TOO_MANY_PLAYERS",
+          message: `${game.name} supports up to ${game.maxPlayers} players.`,
         };
         socket.emit("connection:error", err);
         return;
@@ -255,8 +286,13 @@ async function main() {
       if (!room) return;
 
       if (socket.data.role === "host") {
-        room.hostSocketId = null;
-        deleteRoomIfEmpty(room);
+        cancelQuickDraw(room.code);
+        cancelTriviaRush(room.code);
+        const payload: RoomClosedPayload = {
+          message: "The host left the room. Start a new room to keep playing.",
+        };
+        io.to(room.code).emit("room:closed", payload);
+        closeRoom(room);
         return;
       }
 
