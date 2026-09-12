@@ -117,6 +117,25 @@
           </div>
           <div id="study-board" class="study-board" aria-live="polite"></div>
           <p class="study-persistence">This board is saved on this host browser. Use the remove control on any card to delete it.</p>
+          <section class="module-library" aria-labelledby="module-library-title">
+            <div class="booster-heading"><p class="eyebrow">Teacher modules</p><h3 id="module-library-title">Teach a topic, not just a question</h3></div>
+            <p class="module-intro">Open an original starter lesson or build a multi-section module. The active module appears in every student’s Study workspace.</p>
+            <div id="starter-modules" class="starter-modules"></div>
+            <section class="module-builder" aria-labelledby="module-builder-title">
+              <h4 id="module-builder-title">Build a local module</h4>
+              <div class="builder-meta"><input id="module-title-input" maxlength="120" placeholder="Module title" aria-label="Module title" /><input id="module-topic-input" maxlength="100" placeholder="Topic" aria-label="Module topic" /></div>
+              <textarea id="module-description-input" rows="2" maxlength="500" placeholder="What will students understand by the end?" aria-label="Module overview"></textarea>
+              <input id="lesson-title-input" maxlength="140" placeholder="Lesson section title" aria-label="Lesson section title" />
+              <textarea id="lesson-theory-input" rows="5" maxlength="4000" placeholder="Explain the theory clearly, with an example…" aria-label="Lesson theory"></textarea>
+              <textarea id="lesson-practice-input" rows="2" maxlength="1200" placeholder="Practice or retrieval question…" aria-label="Lesson practice"></textarea>
+              <textarea id="lesson-solution-input" rows="4" maxlength="4000" placeholder="Detailed worked solution and why it works…" aria-label="Lesson solution"></textarea>
+              <div class="booster-actions"><button id="lesson-add-btn" type="button">Add lesson section</button><button id="module-save-btn" type="button" class="quiet">Save to my library</button><button id="module-share-btn" type="button" class="quiet">Share draft to room</button></div>
+              <p id="module-builder-status" class="booster-status">Add theory, practice, and a solution for each section.</p>
+              <ol id="module-draft" class="builder-draft"></ol>
+            </section>
+            <div id="saved-modules" class="saved-modules"></div>
+            <div id="active-module" class="active-module" aria-live="polite"></div>
+          </section>
           <section class="knowledge-booster" aria-labelledby="booster-title">
             <div class="booster-heading"><p class="eyebrow">Knowledge booster</p><h3 id="booster-title">Run a private room quiz</h3></div>
             <section class="booster-builder" aria-labelledby="builder-title">
@@ -240,6 +259,7 @@
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
+
 
 
 
