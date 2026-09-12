@@ -2,6 +2,7 @@ import type { GameLibraryEntry } from "../src/platform/types.js";
 import { QUICK_DRAW_ID, quickDrawController } from "./games/quickDraw.js";
 import { TRIVIA_RUSH_ID, triviaRushController } from "./games/triviaRush.js";
 import { COLOR_CLASH_ID, colorClashController } from "./games/colorClash.js";
+import { FUSE_FRENZY_ID, fuseFrenzyController } from "./games/fuseFrenzy.js";
 
 export const HIGH_FOREST_ID = "high-forest-quest";
 export const highForestController = {
@@ -32,6 +33,13 @@ export const gameLibrary: GameLibraryEntry[] = [
     maxPlayers: 8,
   },
   {
+    id: FUSE_FRENZY_ID,
+    name: "Fuse Frenzy",
+    description: "Pass the bomb before the fuse runs out.",
+    minPlayers: 3,
+    maxPlayers: 8,
+  },
+  {
     id: TRIVIA_RUSH_ID,
     name: "Trivia Rush",
     description: "Fast multiple-choice rounds. Answer first and correctly to score big.",
@@ -42,10 +50,11 @@ export const gameLibrary: GameLibraryEntry[] = [
 
 export const controllerForGame: Record<
   string,
-  typeof quickDrawController | typeof highForestController | typeof triviaRushController | typeof colorClashController
+  typeof quickDrawController | typeof highForestController | typeof triviaRushController | typeof colorClashController | typeof fuseFrenzyController
 > = {
   [QUICK_DRAW_ID]: quickDrawController,
   [HIGH_FOREST_ID]: highForestController,
   [TRIVIA_RUSH_ID]: triviaRushController,
   [COLOR_CLASH_ID]: colorClashController,
+  [FUSE_FRENZY_ID]: fuseFrenzyController,
 };
