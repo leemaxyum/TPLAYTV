@@ -1,5 +1,6 @@
 import { connectSocket } from "../src/network/client";
 import type {
+  ColorClashStage,
   ControllerInputPayload,
   GameResultsPayload,
   GameStartedPayload,
@@ -23,6 +24,9 @@ const triviaStatusEl = document.getElementById("trivia-status")!;
 const triviaButtons = Array.from(
   document.querySelectorAll<HTMLButtonElement>("#trivia-grid .trivia-btn")
 );
+const colorControllerEl = document.getElementById("color-controller")!;
+const colorStatusEl = document.getElementById("color-status")!;
+const colorButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("#color-grid .color-btn"));
 const resultsViewEl = document.getElementById("results-view")!;
 const resultTextEl = document.getElementById("result-text")!;
 const tapButton = document.getElementById("tap-button") as HTMLButtonElement;
@@ -32,7 +36,7 @@ let myPlayerId: string | null = null;
 let tapSequence = 0;
 
 function showOnly(section: HTMLElement) {
-  for (const el of [waitingEl, controllerViewEl, triviaControllerEl, forestControllerEl, resultsViewEl]) {
+  for (const el of [waitingEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, resultsViewEl]) {
     el.classList.toggle("hidden", el !== section);
   }
 }
@@ -121,7 +125,7 @@ socket.on("connection:error", (err: ServerErrorPayload) => {
     if (attemptedReconnect) {
       clearSession();
       form.classList.remove("hidden");
-      for (const el of [waitingEl, controllerViewEl, triviaControllerEl, forestControllerEl, resultsViewEl]) {
+      for (const el of [waitingEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, resultsViewEl]) {
         el.classList.add("hidden");
       }
       return;
@@ -138,7 +142,7 @@ socket.on("room:closed", (payload: RoomClosedPayload) => {
   clearSession();
   myPlayerId = null;
   form.classList.remove("hidden");
-  for (const el of [waitingEl, controllerViewEl, triviaControllerEl, forestControllerEl, resultsViewEl]) {
+  for (const el of [waitingEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, resultsViewEl]) {
     el.classList.add("hidden");
   }
   errorEl.textContent = payload.message;
@@ -150,6 +154,12 @@ socket.on("room:state", (room: RoomState) => {
 });
 
 socket.on("game:started", (payload: GameStartedPayload) => {
+  if (payload.gameId === "color-clash") {
+    colorStatusEl.textContent = "Match the ink colour, not the word.";
+    colorButtons.forEach((button) => { button.disabled = false; button.classList.remove("selected", "correct", "incorrect"); });
+    showOnly(colorControllerEl);
+    return;
+  }
   if (payload.controller.type === "dpad") {
     showOnly(forestControllerEl);
     return;
@@ -183,8 +193,29 @@ triviaButtons.forEach((btn) => {
   });
 });
 
-socket.on("game:state", (state: TriviaStage) => {
-  if (state.stage === "question") {
+colorButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    socket.emit("controller:input", { action: button.dataset.color!, sequence: tapSequence++ } satisfies ControllerInputPayload);
+    colorButtons.forEach((entry) => (entry.disabled = true));
+    button.classList.add("selected");
+  });
+});
+
+socket.on("game:state", (state: TriviaStage | ColorClashStage) => {
+  if (state.stage === "color-question") {
+    colorStatusEl.textContent = "Round " + (state.questionIndex + 1) + " / " + state.totalQuestions + " — match the ink";
+    colorButtons.forEach((button) => {
+      button.disabled = false;
+      button.classList.remove("selected", "correct", "incorrect");
+    });
+  } else if (state.stage === "color-reveal") {
+    colorStatusEl.textContent = state.awards.length ? state.awards[0].name + " was fastest!" : "No correct answers.";
+    colorButtons.forEach((button) => {
+      button.disabled = true;
+      if (button.dataset.color === state.correctColor) button.classList.add("correct");
+      else if (button.classList.contains("selected")) button.classList.add("incorrect");
+    });
+  } else if (state.stage === "question") {
     triviaStatusEl.textContent = `Question ${state.questionIndex + 1} / ${state.totalQuestions}`;
     triviaButtons.forEach((btn) => {
       btn.disabled = false;
