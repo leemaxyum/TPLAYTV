@@ -73,7 +73,7 @@ export type QuickDrawResult = {
 
 export type GameResultsPayload = {
   gameId: string;
-  rankings: QuickDrawResult[] | TriviaResult[] | ColorClashResult[];
+  rankings: QuickDrawResult[] | TriviaResult[] | ColorClashResult[] | FuseFrenzyResult[];
 };
 
 export type ControllerInputPayload = {
@@ -124,6 +124,19 @@ export type ColorClashStage =
     };
 
 export type ColorClashResult = {
+  playerId: string;
+  name: string;
+  points: number;
+  correctCount: number;
+};
+
+// --- Fuse Frenzy -------------------------------------------------------
+
+export type FuseFrenzyStage =
+  | { stage: "fuse-turn"; holderId: string; holderName: string; fuseEndsAt: number; round: number; remainingPlayerIds: string[] }
+  | { stage: "fuse-eliminated"; playerId: string; playerName: string; remainingPlayerIds: string[] };
+
+export type FuseFrenzyResult = {
   playerId: string;
   name: string;
   points: number;
