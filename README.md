@@ -1,80 +1,112 @@
-# Fleavo (Phase 1 + 3: rooms + Quick Draw)
+# Fleavo
 
-TV-first local multiplayer party game platform. Rooms/joining (Phase 1) and
-a first playable game, Quick Draw (Phase 3), are done. Phase 2's generic
-controller foundation and Phases 4-7 (Color Clash, Crowd Dodge, polish)
-are not built yet.
+Fleavo is a local-first shared room for a TV or laptop host and the phones around it. It starts as a calm space for party games and student study sessions: open one room on the shared screen, let people join on the same Wi-Fi, then play, organise ideas, track tasks, or run a private course quiz.
 
-## Run
+No account, cloud database, or internet connection is required after dependencies are installed. Room, game, study-board, and quiz state live only in the host process and disappear when the room closes.
 
-```
+## What works today
+
+- **Shared room:** QR-based joining, 2–8 players, reconnect grace period, host-loss handling, and session reset.
+- **Games:** Quick Draw, Trivia Rush, Color Clash, Fuse Frenzy, and High Forest Quest.
+- **Study Space:** host-owned Notes, Ideas, and Tasks board, live-synced to the room.
+- **Knowledge Booster:** host imports a small course quiz as JSON; phones answer once privately; TV shows only aggregate progress until the host reveals the answer.
+
+This is an early LAN product. A public class platform, cloud persistence, accounts, and permanent learner profiles are deliberately not included.
+
+## Quick start
+
+### Requirements
+
+- Node.js 20 or newer
+- A laptop/desktop and phones on the same non-isolated Wi-Fi network
+
+```bash
 npm install
 npm run dev
 ```
 
-The terminal will print two URLs, e.g.:
+The terminal prints two important addresses:
 
-```
-Host (this PC):    http://localhost:5173/tv/
-LAN (for phones):  http://192.168.1.42:5173/controller/
-```
-
-1. Open the **Host** URL on the PC (this is the "console" screen — mirror/cast
-   this to a TV if you want).
-2. Make sure your phone is on the **same Wi-Fi** as the PC.
-3. Scan the QR code shown on the host screen, or type the LAN URL manually.
-4. Enter a name and tap **JOIN**.
-5. Your name appears live on the host screen.
-
-Repeat with 2–8 phones.
-
-6. On the host screen, click **Quick Draw** in the game library.
-7. Phones get a big TAP button. Wait for READY, then GO — first valid tap
-   per player wins.
-8. Results (reaction time, or "false start" for early taps) show on the
-   host and each phone.
-9. Click **Back to library** to return and play again.
-
-## Known limitations (expected at this stage)
-
-- Only one game (Quick Draw) exists so far.
-- Some campus/guest Wi-Fi networks isolate devices from each other (client
-  isolation), which will block phones from reaching the PC. There's no
-  workaround for this in v0.1 — use a normal home/hotspot network for now.
-- Android phones: some (esp. Samsung) auto-switch from Wi-Fi to mobile data
-  when a network looks like it has no internet, which breaks local
-  connections. Turn off mobile data (or "Smart network switch" in Wi-Fi
-  settings) while playing.
-- Player list persists players in memory only; restarting the server clears
-  all rooms.
-- If a game mid-round is interrupted by a phone leaving, that player is
-  simply excluded from the results — no crash, but no rejoin-mid-round yet.
-
-## Project layout
-
-```
-stellar-play/
-├─ server/           Express + Socket.IO + Vite (all one Node process)
-├─ src/platform/      Shared types (RoomState, PlayerState)
-├─ src/network/        Shared Socket.IO client helper
-├─ tv/                /tv host page
-├─ controller/        /controller phone page
+```text
+Host (this PC): http://localhost:5173/tv/
+LAN (for phones): http://192.168.x.x:5173/controller/
 ```
 
-## Player join flow
+1. Open the **Host** address on the laptop or TV.
+2. Wait for the room code and QR to appear.
+3. Have each person scan the QR or open the LAN address on their phone.
+4. Enter a name and join.
+5. Use the host navigation to open Games or Study.
 
-The server owns room membership and player identity. When a phone submits the
-join form, it emits `room:join` with a room code and name. The server verifies
-that the room exists, the name is valid, fewer than eight connected players are
-present, and no existing player is using that name (case-insensitively).
+For a complete real-device check, follow [the playtest runbook](docs/REAL_DEVICE_PLAYTEST.md).
 
-For a valid join, the server creates the player ID, stores it with the socket,
-and broadcasts a fresh `room:state` to the TV and every controller. The joining
-phone receives `room:joined` and saves its room code/player ID locally so a
-brief Wi-Fi drop can use `player:reconnect` instead of creating a duplicate
-player or losing its score.
+## Study Space and Knowledge Boosters
 
-If validation fails, only that phone receives `connection:error`; the room
-state is not changed. Player names remain reserved through the 30-second
-reconnect grace period so the TV never has to distinguish two players with the
-same visible name.
+The host opens **Study** to add Notes, Ideas, or Tasks. Tasks can be completed from the host screen; every connected phone receives a quiet summary of the board.
+
+For a course quiz, paste a version-1 JSON set into **Knowledge Booster** on the Study screen, then Load quiz → Start question → Reveal answer → Next question. Question import rules, a complete example, and a ready-to-use prompt for a course-content agent are in [the Knowledge Booster import contract](docs/KNOWLEDGE_BOOSTER_IMPORT.md).
+
+Privacy is intentional:
+
+- A phone can submit one answer per question and receives only private confirmation.
+- The TV sees an aggregate response count while a question is live.
+- Correct answers and explanations appear only after the host reveals them.
+- No public wrong-answer list, accuracy ranking, account, or learner profile is created.
+
+## Development commands
+
+```bash
+npm run dev        # watch the shared Express + Socket.IO + Vite server
+npm run typecheck  # TypeScript check without writing build output
+npm run build      # production client bundle check
+```
+
+`npm run dev` is the local/LAN server. It is not a cloud deployment command; production hosting needs a public origin and deployment-specific configuration.
+
+## Architecture
+
+```text
+TV host (/tv) ─────┐
+                    ├── Socket.IO server ── room-owned in-memory state
+Phone controllers ─┘        ├── games and scores
+(/controller)               ├── Study Board
+                            └── Knowledge Booster answers
+```
+
+The server is authoritative: clients never assign player IDs, scores, room membership, task state, or quiz outcomes. The [architecture guide](docs/ARCHITECTURE.md) explains the state boundaries and event rules.
+
+## Repository map
+
+```text
+server/             Room server, game lifecycles, study and quiz state
+tv/                 Host/TV interface
+controller/         Phone interface
+src/platform/       Shared room and game types
+src/network/        Shared Socket.IO client setup
+public/games/       Static game assets and High Forest Quest
+docs/               Product, brand, architecture, import, and playtest guides
+```
+
+## LAN troubleshooting
+
+- Use the LAN URL or QR code on phones—`localhost` only works on the host computer.
+- Guest/campus Wi-Fi may isolate devices. Test on a home network or hotspot first.
+- Some Android devices switch to mobile data when Wi-Fi has no internet. Disable mobile data or the “smart switch” feature while testing.
+- If port 5173 is already in use, stop the old Fleavo server before starting another one.
+
+## Product and contribution boundaries
+
+- Keep High Forest Quest isolated unless changing it is explicitly part of the task.
+- Do not add tracking, accounts, or public learner records without a deliberate product/privacy decision.
+- New games must follow [the product roadmap’s spec and real-device gates](docs/PRODUCT_ROADMAP.md).
+- Third-party game code/assets require a verified compatible license and a recorded notice before integration.
+
+## Documentation
+
+- [Product roadmap](docs/PRODUCT_ROADMAP.md)
+- [Fleavo brand guide](docs/FLEAVO_BRAND_GUIDE.md)
+- [Study Space MVP](docs/STUDY_SPACE_MVP.md)
+- [Knowledge Booster import contract](docs/KNOWLEDGE_BOOSTER_IMPORT.md)
+- [Architecture guide](docs/ARCHITECTURE.md)
+- [Real-device playtest runbook](docs/REAL_DEVICE_PLAYTEST.md)
+
