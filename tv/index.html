@@ -116,10 +116,29 @@
             <button id="study-add-btn" type="button">Add</button>
           </div>
           <div id="study-board" class="study-board" aria-live="polite"></div>
+          <p class="study-persistence">This board is saved on this host browser. Use the remove control on any card to delete it.</p>
           <section class="knowledge-booster" aria-labelledby="booster-title">
             <div class="booster-heading"><p class="eyebrow">Knowledge booster</p><h3 id="booster-title">Run a private room quiz</h3></div>
+            <section class="booster-builder" aria-labelledby="builder-title">
+              <h4 id="builder-title">Build a quiz without JSON</h4>
+              <div class="builder-meta"><input id="builder-title-input" maxlength="100" placeholder="Quiz title, e.g. Python basics" aria-label="Quiz title" /><input id="builder-topic-input" maxlength="80" placeholder="Topic (optional)" aria-label="Quiz topic" /></div>
+              <textarea id="builder-prompt" rows="2" maxlength="600" placeholder="Write your question…" aria-label="Question prompt"></textarea>
+              <div id="builder-choices" class="builder-choices">
+                <label><input type="radio" name="builder-correct" value="0" checked /> <input data-choice="0" maxlength="180" placeholder="Answer A" aria-label="Answer A" /></label>
+                <label><input type="radio" name="builder-correct" value="1" /> <input data-choice="1" maxlength="180" placeholder="Answer B" aria-label="Answer B" /></label>
+                <label><input type="radio" name="builder-correct" value="2" /> <input data-choice="2" maxlength="180" placeholder="Answer C" aria-label="Answer C" /></label>
+                <label><input type="radio" name="builder-correct" value="3" /> <input data-choice="3" maxlength="180" placeholder="Answer D" aria-label="Answer D" /></label>
+              </div>
+              <textarea id="builder-explanation" rows="2" maxlength="600" placeholder="Short explanation shown after reveal…" aria-label="Answer explanation"></textarea>
+              <div class="booster-actions"><button id="builder-add-btn" type="button">Add question</button><button id="builder-load-btn" type="button" class="quiet">Load draft</button><button id="builder-clear-btn" type="button" class="quiet">Clear draft</button></div>
+              <p id="builder-status" class="booster-status">Add one question at a time. Pick the correct answer with the circle.</p>
+              <ol id="builder-draft" class="builder-draft"></ol>
+            </section>
+            <details class="advanced-import"><summary>Advanced: paste a JSON quiz</summary>
             <textarea id="booster-import" rows="5" placeholder="Paste a version 1 Knowledge Booster JSON set…" aria-label="Knowledge Booster JSON import"></textarea>
-            <div class="booster-actions"><button id="booster-import-btn" type="button">Load quiz</button><button id="booster-start-btn" type="button" class="quiet">Start question</button><button id="booster-reveal-btn" type="button" class="quiet">Reveal answer</button><button id="booster-next-btn" type="button" class="quiet">Next question</button></div>
+            <div class="booster-actions"><button id="booster-import-btn" type="button">Load quiz</button></div>
+            </details>
+            <div class="booster-actions"><button id="booster-start-btn" type="button" class="quiet">Start question</button><button id="booster-reveal-btn" type="button" class="quiet">Reveal answer</button><button id="booster-next-btn" type="button" class="quiet">Next question</button></div>
             <p id="booster-status" class="booster-status">Load a small course set to begin. Phone answers stay private.</p>
             <div id="booster-live" class="booster-live" aria-live="polite"></div>
           </section>
@@ -221,5 +240,6 @@
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
+
 
 
