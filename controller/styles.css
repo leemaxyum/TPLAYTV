@@ -409,3 +409,11 @@ body {
 .hidden {
   display: none !important;
 }
+
+.study-summary {
+  margin: 0.7rem 0 0;
+  color: var(--text-1);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+

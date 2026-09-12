@@ -53,6 +53,7 @@ import {
   handleFuseFrenzyInput,
   startFuseFrenzy,
 } from "./games/fuseFrenzy.js";
+import { addStudyBoardItem, getStudyBoard, toggleStudyBoardTask, clearStudyBoard } from "./studyBoard.js";
 import type { InternalRoom } from "./roomStore.js";
 
 const PORT = Number(process.env.PORT ?? 5173);
@@ -126,6 +127,7 @@ async function main() {
       socket.emit("room:created", payload);
       socket.emit("room:state", toPublicState(room));
       socket.emit("game:library", gameLibrary);
+      socket.emit("study:state", getStudyBoard(room.code));
     });
 
     socket.on(
@@ -190,6 +192,7 @@ async function main() {
         const payload: RoomJoinedPayload = { code: room.code, playerId };
         socket.emit("room:joined", payload);
         io.to(room.code).emit("room:state", toPublicState(room));
+        socket.emit("study:state", getStudyBoard(room.code));
       }
     );
 
@@ -241,6 +244,23 @@ async function main() {
         }
       }
     );
+
+    socket.on("study:add", (raw: { lane?: "notes" | "ideas" | "tasks"; text?: string } = {}) => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode || !raw.lane || typeof raw.text !== "string" || !raw.text.trim()) return;
+      if (!(["notes", "ideas", "tasks"] as const).includes(raw.lane)) return;
+      const room = getRoom(roomCode);
+      if (!room) return;
+      io.to(room.code).emit("study:state", addStudyBoardItem(room.code, raw.lane, raw.text));
+    });
+
+    socket.on("study:toggle-task", (raw: { itemId?: string } = {}) => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode || typeof raw.itemId !== "string") return;
+      const room = getRoom(roomCode);
+      if (!room) return;
+      io.to(room.code).emit("study:state", toggleStudyBoardTask(room.code, raw.itemId));
+    });
 
     socket.on("room:start-game", (raw: { gameId?: string } = {}) => {
       const roomCode = socket.data.roomCode as string | undefined;
@@ -345,7 +365,8 @@ async function main() {
         cancelQuickDraw(room.code);
         cancelTriviaRush(room.code);
         cancelColorClash(room.code);
-      cancelFuseFrenzy(room.code);
+        cancelFuseFrenzy(room.code);
+        clearStudyBoard(room.code);
         const payload: RoomClosedPayload = {
           message: "The host left the room. Start a new room to keep playing.",
         };
@@ -387,3 +408,4 @@ async function main() {
 }
 
 main();
+
