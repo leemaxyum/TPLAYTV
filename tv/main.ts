@@ -251,7 +251,7 @@ document.querySelectorAll<HTMLButtonElement>(".nav-item[data-nav]").forEach((btn
       b.classList.toggle("active", b === btn);
     });
 
-    if (target === "home" || target === "games") showShellView(target);
+    if (target === "home" || target === "games") showShellView(target as "home" | "games");
     else if (target === "players") showShellView("people");
     else if (target === "leaderboard") showShellView("leaderboard");
   });
