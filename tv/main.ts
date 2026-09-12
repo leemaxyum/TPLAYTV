@@ -50,6 +50,7 @@ const HIGH_FOREST_ID = "high-forest-quest";
 
 let library: GameLibraryEntry[] = [];
 let activeGameId: string | null = null;
+let fuseCountdownTimer: ReturnType<typeof setInterval> | null = null;
 
 // Fixed palette so avatar colors stay stable across re-renders/sorts.
 const AVATAR_COLORS = ["#0137f2", "#e63946", "#2ec4b6", "#fee500", "#ff6b35", "#8338ec", "#06d6a0", "#ef476f"];
@@ -64,7 +65,13 @@ function initialsFor(name: string): string {
   return name.trim().slice(0, 2).toUpperCase();
 }
 
+function stopFuseCountdown() {
+  if (fuseCountdownTimer) clearInterval(fuseCountdownTimer);
+  fuseCountdownTimer = null;
+}
+
 function showOnly(section: HTMLElement) {
+  if (section !== gameViewSection) stopFuseCountdown();
   for (const el of [lobbySection, gameViewSection, resultsSection]) {
     el.classList.toggle("hidden", el !== section);
   }
@@ -369,8 +376,14 @@ socket.on("game:input", (input: { action: string; pressed: boolean }) => {
 
 socket.on("game:state", (state: QuickDrawStage | TriviaStage | ColorClashStage | FuseFrenzyStage) => {
   if (state.stage === "fuse-turn") {
+    stopFuseCountdown();
+    const renderFuse = () => {
+      const seconds = Math.max(0, (state.fuseEndsAt - Date.now()) / 1000);
+      gameStageEl.textContent = state.holderName + " has the bomb · " + seconds.toFixed(1) + "s";
+    };
     gameStageEl.className = "game-stage ready";
-    gameStageEl.textContent = state.holderName + " has the bomb";
+    renderFuse();
+    fuseCountdownTimer = setInterval(renderFuse, 100);
   } else if (state.stage === "fuse-eliminated") {
     gameStageEl.className = "game-stage go";
     gameStageEl.textContent = state.playerName + " exploded!";
