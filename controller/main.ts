@@ -33,13 +33,18 @@ const resultTextEl = document.getElementById("result-text")!;
 const tapButton = document.getElementById("tap-button") as HTMLButtonElement;
 const forestControllerEl = document.getElementById("forest-controller")!;
 const studySummaryEl = document.getElementById("study-summary")!;
+const boosterControllerEl = document.getElementById("booster-controller")!;
+const boosterPhoneProgressEl = document.getElementById("booster-phone-progress")!;
+const boosterPhonePromptEl = document.getElementById("booster-phone-prompt")!;
+const boosterPhoneChoicesEl = document.getElementById("booster-phone-choices")!;
+const boosterPhoneStatusEl = document.getElementById("booster-phone-status")!;
 
 let myPlayerId: string | null = null;
 let tapSequence = 0;
 let singleButtonAction = "tap";
 
 function showOnly(section: HTMLElement) {
-  for (const el of [waitingEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, resultsViewEl]) {
+  for (const el of [waitingEl, controllerViewEl, triviaControllerEl, colorControllerEl, forestControllerEl, boosterControllerEl, resultsViewEl]) {
     el.classList.toggle("hidden", el !== section);
   }
 }
@@ -147,6 +152,20 @@ socket.on("study:state", (board: { items: Array<{ lane: "notes" | "ideas" | "tas
   studySummaryEl.textContent = board.items.length
     ? `Shared study board: ${board.items.length} ${itemLabel}${openTasks ? ` · ${openTasks} task${openTasks === 1 ? "" : "s"} open` : ""}`
     : "The shared study board is ready when your host is.";
+});
+
+type BoosterPhoneState = { loaded: false } | { loaded: true; questionIndex: number; totalQuestions: number; phase: "idle" | "question" | "reveal" | "complete"; question: { prompt: string; choices: string[] } | null };
+socket.on("booster:state", (state: BoosterPhoneState) => {
+  if (!state.loaded || state.phase === "idle" || state.phase === "complete" || !state.question) return;
+  boosterPhoneProgressEl.textContent = state.phase === "question" ? `Question ${state.questionIndex + 1} of ${state.totalQuestions}` : "Answer revealed on the room screen.";
+  boosterPhonePromptEl.textContent = state.question.prompt;
+  boosterPhoneChoicesEl.innerHTML = "";
+  state.question.choices.forEach((choice, index) => { const button = document.createElement("button"); button.className = "trivia-btn"; button.textContent = choice; button.disabled = state.phase !== "question"; button.addEventListener("click", () => socket.emit("booster:answer", { choiceIndex: index })); boosterPhoneChoicesEl.appendChild(button); });
+  boosterPhoneStatusEl.textContent = state.phase === "question" ? "Choose one answer. Only you get confirmation." : "The host will move on when ready.";
+  showOnly(boosterControllerEl);
+});
+socket.on("booster:answer-status", (payload: { accepted: boolean }) => {
+  if (payload.accepted) { boosterPhoneStatusEl.textContent = "Answer saved privately."; boosterPhoneChoicesEl.querySelectorAll("button").forEach((button) => (button.disabled = true)); }
 });
 
 socket.on("room:closed", (payload: RoomClosedPayload) => {
@@ -271,4 +290,5 @@ socket.on("game:results", (payload: GameResultsPayload) => {
   }
   showOnly(resultsViewEl);
 });
+
 
