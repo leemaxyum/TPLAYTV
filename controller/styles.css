@@ -385,6 +385,8 @@ body {
   gap: 0.2rem;
   font-size: 0.65rem;
   color: var(--text-2);
+  border: 0;
+  background: transparent;
 }
 
 .bottom-nav .nav-icon {
@@ -402,10 +404,6 @@ body {
   font-weight: 700;
 }
 
-.bottom-nav .nav-item.disabled {
-  opacity: 0.4;
-}
-
 .hidden {
   display: none !important;
 }
@@ -421,5 +419,22 @@ body {
 .booster-controller h2 { font-size: 1.2rem; line-height: 1.35; margin: 0.5rem 0 1rem; }
 .booster-controller .trivia-grid { grid-template-columns: 1fr; }
 .booster-controller .trivia-btn { min-height: 3.6rem; padding: 0.75rem; font-size: 0.95rem; }
+
+.phone-page { width: 100%; max-width: 390px; padding-bottom: 1rem; }
+.page-kicker { margin: 0; color: var(--accent); font-size: 0.73rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.phone-page h1 { margin: 0.25rem 0 0.45rem; font-size: 1.7rem; letter-spacing: -0.04em; }
+.page-copy { margin: 0 0 1rem; color: var(--text-1); line-height: 1.45; }
+.phone-study-board { display: grid; gap: 0.8rem; }
+.phone-study-lane { border: 1px solid var(--surface-border); border-radius: 14px; background: var(--bg-1); padding: 0.85rem; }
+.phone-study-lane h2 { margin: 0 0 0.5rem; color: var(--text-1); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.phone-study-lane p { margin: 0.45rem 0 0; border-top: 1px solid var(--surface-border); padding-top: 0.45rem; line-height: 1.4; }
+.phone-study-lane p:first-of-type { border-top: 0; padding-top: 0; }
+.phone-study-lane p.done { color: var(--text-2); text-decoration: line-through; }
+.phone-study-lane .empty-board { color: var(--text-2); font-size: 0.86rem; font-style: italic; }
+.profile-list { display: grid; gap: 0.65rem; margin: 1rem 0 0; }
+.profile-list div { display: flex; justify-content: space-between; border: 1px solid var(--surface-border); border-radius: 12px; background: var(--bg-1); padding: 0.8rem; }
+.profile-list dt { color: var(--text-1); }.profile-list dd { margin: 0; font-weight: 800; }
+.help-list { display: grid; gap: 0.65rem; margin: 1rem 0; padding-left: 1.15rem; color: var(--text-1); line-height: 1.45; }
+
 
 
