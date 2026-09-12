@@ -33,6 +33,10 @@ export type ServerErrorPayload = {
   message: string;
 };
 
+export type RoomClosedPayload = {
+  message: string;
+};
+
 // --- Game SDK (small, conceptual — see GAME_SDK.md) -----------------------
 
 export type ControllerDefinition = {
