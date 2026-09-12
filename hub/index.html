@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Hub Learn - Fleavo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="hub-shell">
+      <header class="hub-header">
+        <a class="wordmark" href="/hub/">fleavo <span>Hub Learn</span></a>
+        <nav aria-label="Hub Learn navigation">
+          <button class="hub-nav active" data-view="today">Today</button>
+          <button class="hub-nav" data-view="library">Library</button>
+          <button class="hub-nav" data-view="review">Review</button>
+        </nav>
+      </header>
+
+      <section id="today-view" class="hub-view">
+        <p class="eyebrow">Solo learning space</p>
+        <h1>Make steady progress,<br />without the noise.</h1>
+        <p class="hero-copy">Choose one small concept, practise it deeply, and leave with something you can explain or build.</p>
+        <div class="today-grid">
+          <article class="focus-card">
+            <p class="card-kicker">Focus session</p>
+            <h2 id="focus-title">25:00</h2>
+            <p id="focus-label">Choose a topic, then begin a calm focus block.</p>
+            <div class="focus-actions"><button id="focus-start">Start focus</button><button id="focus-reset" class="quiet">Reset</button></div>
+            <label class="duration-label">Minutes <select id="focus-minutes"><option value="25">25</option><option value="45">45</option><option value="50">50</option></select></label>
+          </article>
+          <article class="next-card">
+            <p class="card-kicker">Next concept</p>
+            <h2 id="next-title">Python Foundations</h2>
+            <p id="next-copy">Learn variables, decisions, loops, and functions with real examples.</p>
+            <button id="open-next">Open lesson</button>
+          </article>
+          <article class="progress-card">
+            <p class="card-kicker">Your pace</p>
+            <strong id="progress-count">0</strong><span> topics completed</span>
+            <p id="streak-copy">Your first focused block starts a streak.</p>
+          </article>
+        </div>
+        <section class="method-card"><h2>How Hub Learn teaches</h2><div><span>Learn</span><span>Retrieve</span><span>Practise</span><span>Explain</span><span>Review</span></div><p>Do not memorise pages. Build a mental model, answer from memory, solve a small task, then return later.</p></section>
+      </section>
+
+      <section id="library-view" class="hub-view hidden">
+        <div class="library-heading"><div><p class="eyebrow">Your curriculum</p><h1>Build breadth. Earn depth.</h1></div><input id="library-search" placeholder="Search a topic, e.g. recursion" aria-label="Search curriculum" /></div>
+        <div id="track-list" class="track-list"></div>
+        <article id="lesson-panel" class="lesson-panel hidden" aria-live="polite"></article>
+      </section>
+
+      <section id="review-view" class="hub-view hidden">
+        <p class="eyebrow">Active recall</p><h1>Review what you want to keep.</h1>
+        <div class="review-grid">
+          <article class="flashcard-card"><p class="card-kicker">Flashcards</p><p id="flashcard-topic" class="flashcard-topic">Python Foundations</p><h2 id="flashcard-question">What does assignment do in Python?</h2><p id="flashcard-answer" class="flashcard-answer hidden">It evaluates the right side first, then binds the name on the left to that result.</p><div class="focus-actions"><button id="flashcard-reveal">Reveal</button><button id="flashcard-next" class="quiet">Next card</button></div></article>
+          <article class="quiz-card"><p class="card-kicker">Self-check quiz</p><h2 id="quiz-question">Why does binary search need sorted data?</h2><div id="quiz-options" class="quiz-options"></div><p id="quiz-feedback"></p></article>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
+
