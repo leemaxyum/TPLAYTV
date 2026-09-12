@@ -33,7 +33,9 @@ const triviaProgressEl = document.getElementById("trivia-progress")!;
 const triviaPromptEl = document.getElementById("trivia-prompt")!;
 const triviaOptionsEl = document.getElementById("trivia-options")!;
 const resultsListEl = document.getElementById("results-list")!;
+const replayBtn = document.getElementById("replay-btn")!;
 const libraryBtn = document.getElementById("library-btn")!;
+const resetSessionBtn = document.getElementById("reset-session-btn")!;
 
 const TRIVIA_RUSH_ID = "trivia-rush";
 const HIGH_FOREST_ID = "high-forest-quest";
@@ -395,8 +397,18 @@ socket.on("game:results", (payload: GameResultsPayload) => {
   showOnly(resultsSection);
 });
 
+replayBtn.addEventListener("click", () => {
+  socket.emit("room:play-again");
+});
+
 libraryBtn.addEventListener("click", () => {
   activeGameId = null;
   highForestFrame.src = "";
   socket.emit("room:return-to-library");
+});
+
+resetSessionBtn.addEventListener("click", () => {
+  activeGameId = null;
+  highForestFrame.src = "";
+  socket.emit("room:reset-session");
 });
