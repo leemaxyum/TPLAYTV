@@ -905,6 +905,26 @@ button {
   text-decoration: line-through;
 }
 
+.knowledge-booster {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--surface-border);
+  padding-top: 1.5rem;
+}
+
+.booster-heading h3 { margin: 0.25rem 0 0.85rem; font-size: 1.35rem; }
+.knowledge-booster textarea { width: 100%; resize: vertical; border: 1px solid var(--surface-border); border-radius: 12px; background: var(--bg-1); color: var(--text-0); font: inherit; line-height: 1.45; padding: 0.8rem; }
+.booster-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.7rem; }
+.booster-actions button { min-height: 40px; border: 0; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); cursor: var(--cursor-hand); font-weight: 800; padding: 0 1rem; }
+.booster-actions button.quiet { border: 1px solid var(--surface-border); background: var(--bg-1); color: var(--text-0); }
+.booster-actions button:disabled { cursor: default; opacity: 0.45; }
+.booster-status { color: var(--text-1); font-size: 0.85rem; line-height: 1.4; }
+.booster-live { max-width: 720px; }
+.booster-live h4 { margin: 0.5rem 0 0.8rem; font-size: 1.1rem; }
+.booster-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; margin: 0; padding: 0; list-style: none; }
+.booster-choices li { border: 1px solid var(--surface-border); border-radius: 10px; padding: 0.7rem; }
+.booster-choices li.correct { border-color: var(--success); color: var(--success); }
+.booster-explanation { color: var(--text-1); line-height: 1.5; }
+
 /* ===================================================================
    Settings overlay
    =================================================================== */
@@ -1082,5 +1102,8 @@ button {
   .study-compose {
     grid-template-columns: 1fr;
   }
+
+  .booster-choices { grid-template-columns: 1fr; }
 }
+
 
