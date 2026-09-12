@@ -10,6 +10,7 @@ import {
   createRoom,
   deleteRoomIfEmpty,
   getRoom,
+  hasPlayerNamed,
   isRoomFull,
   markDisconnected,
   reconnectPlayer,
@@ -96,6 +97,15 @@ async function main() {
           const err: ServerErrorPayload = {
             code: "ROOM_FULL",
             message: "Room is full.",
+          };
+          socket.emit("connection:error", err);
+          return;
+        }
+
+        if (hasPlayerNamed(room, name)) {
+          const err: ServerErrorPayload = {
+            code: "DUPLICATE_NAME",
+            message: "That name is already in this room. Choose another one.",
           };
           socket.emit("connection:error", err);
           return;
