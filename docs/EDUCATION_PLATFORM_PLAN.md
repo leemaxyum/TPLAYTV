@@ -2,7 +2,9 @@
 
 ## What is real now
 
-Fleavo is still local-first. A teacher/host can run a room, save a Study Board in that host browser, build a quiz without JSON, and deliver private-answer Knowledge Boosters. A student can use a phone workspace to read the shared board, see their room profile, get help, and answer a live quiz.
+Fleavo is still local-first. A teacher/host can run a room, save a Study Board in that host browser, build a quiz without JSON, author/save/share multi-section learning modules, and deliver private-answer Knowledge Boosters. A student can use a phone workspace to read the shared board and active module, reveal worked solutions, see their room profile, get help, and answer a live quiz.
+
+The initial bundled library contains original first-year starter modules for Python Foundations, Algorithms and Data Structures, and Machine Learning Foundations. Each section pairs theory with retrieval practice and a worked solution. A student can self-host a private Fleavo room to work through these modules independently, or a teacher can share one with a group.
 
 This is not yet a multi-school platform. There are no accounts, cloud classes, cross-device course libraries, or durable student records.
 
@@ -46,10 +48,11 @@ Each module should declare learning objectives, estimated duration, prerequisite
 
 ## Delivery milestones
 
-1. Finish real-device validation of the student phone workspace and teacher quiz builder.
-2. Add local teacher module library with save/load/delete and explicit export/import.
+1. Finish real-device validation of the student phone workspace, local module library, and teacher quiz builder.
+2. Add explicit export/import for locally saved modules and expand the original/open-licensed course catalog.
 3. Add assignment records and a student-specific board view.
 4. Add Softboard cards and a teacher-present mode.
 5. Design Canvas concurrency and permissions before implementation.
 6. Only then decide whether accounts and cloud sync are worth the privacy and operations cost.
+
 
