@@ -64,6 +64,7 @@ import {
   startKnowledgeQuestion,
   submitKnowledgeAnswer,
 } from "./knowledgeBooster.js";
+import { clearLearningModule, getLearningModule, loadLearningModule, parseLearningModule } from "./learningModule.js";
 import type { InternalRoom } from "./roomStore.js";
 
 const PORT = Number(process.env.PORT ?? 5173);
@@ -139,6 +140,7 @@ async function main() {
       socket.emit("game:library", gameLibrary);
       socket.emit("study:state", getStudyBoard(room.code));
       socket.emit("booster:state", getKnowledgeState(room.code));
+      socket.emit("module:state", getLearningModule(room.code));
     });
 
     socket.on(
@@ -205,6 +207,7 @@ async function main() {
         io.to(room.code).emit("room:state", toPublicState(room));
         socket.emit("study:state", getStudyBoard(room.code));
         socket.emit("booster:state", getKnowledgeState(room.code));
+        socket.emit("module:state", getLearningModule(room.code));
       }
     );
 
@@ -246,6 +249,7 @@ async function main() {
         io.to(room.code).emit("room:state", toPublicState(room));
         socket.emit("study:state", getStudyBoard(room.code));
         socket.emit("booster:state", getKnowledgeState(room.code));
+        socket.emit("module:state", getLearningModule(room.code));
 
         // If a game is already running, replay its controller config so the
         // reconnecting phone shows the right buttons instead of the waiting screen.
@@ -332,6 +336,25 @@ async function main() {
       const accepted = submitKnowledgeAnswer(roomCode, playerId, raw.choiceIndex);
       socket.emit("booster:answer-status", { accepted });
       if (accepted) io.to(roomCode).emit("booster:state", getKnowledgeState(roomCode));
+    });
+
+    socket.on("module:load", (raw: { module?: unknown } = {}) => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode) return;
+      const room = getRoom(roomCode);
+      if (!room) return;
+      const parsed = parseLearningModule(raw.module);
+      if ("error" in parsed) { socket.emit("module:error", parsed.error); return; }
+      io.to(room.code).emit("module:state", loadLearningModule(room.code, parsed));
+    });
+
+    socket.on("module:clear", () => {
+      const roomCode = socket.data.roomCode as string | undefined;
+      if (socket.data.role !== "host" || !roomCode) return;
+      const room = getRoom(roomCode);
+      if (!room) return;
+      clearLearningModule(room.code);
+      io.to(room.code).emit("module:state", null);
     });
 
     socket.on("room:start-game", (raw: { gameId?: string } = {}) => {
@@ -440,6 +463,7 @@ async function main() {
         cancelFuseFrenzy(room.code);
         clearStudyBoard(room.code);
         clearKnowledgeBooster(room.code);
+        clearLearningModule(room.code);
         const payload: RoomClosedPayload = {
           message: "The host left the room. Start a new room to keep playing.",
         };
@@ -481,6 +505,7 @@ async function main() {
 }
 
 main();
+
 
 
 
