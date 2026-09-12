@@ -32,6 +32,7 @@ const resultsViewEl = document.getElementById("results-view")!;
 const resultTextEl = document.getElementById("result-text")!;
 const tapButton = document.getElementById("tap-button") as HTMLButtonElement;
 const forestControllerEl = document.getElementById("forest-controller")!;
+const studySummaryEl = document.getElementById("study-summary")!;
 
 let myPlayerId: string | null = null;
 let tapSequence = 0;
@@ -138,6 +139,14 @@ socket.on("connection:error", (err: ServerErrorPayload) => {
 
 socket.on("disconnect", () => {
   errorEl.textContent = "The room is reconnecting…";
+});
+
+socket.on("study:state", (board: { items: Array<{ lane: "notes" | "ideas" | "tasks"; done: boolean }> }) => {
+  const openTasks = board.items.filter((item) => item.lane === "tasks" && !item.done).length;
+  const itemLabel = board.items.length === 1 ? "item" : "items";
+  studySummaryEl.textContent = board.items.length
+    ? `Shared study board: ${board.items.length} ${itemLabel}${openTasks ? ` · ${openTasks} task${openTasks === 1 ? "" : "s"} open` : ""}`
+    : "The shared study board is ready when your host is.";
 });
 
 socket.on("room:closed", (payload: RoomClosedPayload) => {
@@ -262,3 +271,4 @@ socket.on("game:results", (payload: GameResultsPayload) => {
   }
   showOnly(resultsViewEl);
 });
+
