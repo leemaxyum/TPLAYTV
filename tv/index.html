@@ -116,6 +116,13 @@
             <button id="study-add-btn" type="button">Add</button>
           </div>
           <div id="study-board" class="study-board" aria-live="polite"></div>
+          <section class="knowledge-booster" aria-labelledby="booster-title">
+            <div class="booster-heading"><p class="eyebrow">Knowledge booster</p><h3 id="booster-title">Run a private room quiz</h3></div>
+            <textarea id="booster-import" rows="5" placeholder="Paste a version 1 Knowledge Booster JSON set…" aria-label="Knowledge Booster JSON import"></textarea>
+            <div class="booster-actions"><button id="booster-import-btn" type="button">Load quiz</button><button id="booster-start-btn" type="button" class="quiet">Start question</button><button id="booster-reveal-btn" type="button" class="quiet">Reveal answer</button><button id="booster-next-btn" type="button" class="quiet">Next question</button></div>
+            <p id="booster-status" class="booster-status">Load a small course set to begin. Phone answers stay private.</p>
+            <div id="booster-live" class="booster-live" aria-live="polite"></div>
+          </section>
         </section>
 
         <section id="game-view" class="channel game-view hidden">
@@ -214,4 +221,5 @@
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
+
 
