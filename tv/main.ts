@@ -42,6 +42,11 @@ const resultsListEl = document.getElementById("results-list")!;
 const replayBtn = document.getElementById("replay-btn")!;
 const libraryBtn = document.getElementById("library-btn")!;
 const resetSessionBtn = document.getElementById("reset-session-btn")!;
+const studySection = document.getElementById("study-view")!;
+const studyBoardEl = document.getElementById("study-board")!;
+const studyTextEl = document.getElementById("study-text") as HTMLInputElement;
+const studyLaneEl = document.getElementById("study-lane") as HTMLSelectElement;
+const studyAddBtn = document.getElementById("study-add-btn")!;
 
 const TRIVIA_RUSH_ID = "trivia-rush";
 const COLOR_CLASH_ID = "color-clash";
@@ -72,7 +77,7 @@ function stopFuseCountdown() {
 
 function showOnly(section: HTMLElement) {
   if (section !== gameViewSection) stopFuseCountdown();
-  for (const el of [lobbySection, gameViewSection, resultsSection]) {
+  for (const el of [lobbySection, studySection, gameViewSection, resultsSection]) {
     el.classList.toggle("hidden", el !== section);
   }
 }
@@ -251,6 +256,8 @@ document.querySelectorAll<HTMLButtonElement>(".nav-item[data-nav]").forEach((btn
       document.getElementById("games")?.scrollIntoView({ behavior: "smooth", block: "start" });
     } else if (target === "players") {
       document.getElementById("players")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (target === "study") {
+      showOnly(studySection);
     }
   });
 });
@@ -293,6 +300,10 @@ studyAddBtn.addEventListener("click", () => {
   studyTextEl.value = "";
 });
 
+studyTextEl.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") studyAddBtn.click();
+});
+
 socket.on("study:state", (board: { items: Array<{ id: string; lane: "notes" | "ideas" | "tasks"; text: string; done: boolean }> }) => {
   studyBoardEl.innerHTML = "";
   for (const lane of ["notes", "ideas", "tasks"] as const) {
@@ -303,7 +314,19 @@ socket.on("study:state", (board: { items: Array<{ id: string; lane: "notes" | "i
       const row = document.createElement("div");
       row.className = "study-item" + (item.done ? " done" : "");
       row.textContent = item.text;
-      if (lane === "tasks") row.addEventListener("click", () => socket.emit("study:toggle-task", { itemId: item.id }));
+      if (lane === "tasks") {
+        row.tabIndex = 0;
+        row.setAttribute("role", "button");
+        row.setAttribute("aria-label", `${item.done ? "Reopen" : "Complete"} task: ${item.text}`);
+        const toggle = () => socket.emit("study:toggle-task", { itemId: item.id });
+        row.addEventListener("click", toggle);
+        row.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggle();
+          }
+        });
+      }
       column.appendChild(row);
     }
     studyBoardEl.appendChild(column);
@@ -362,6 +385,7 @@ socket.on("room:state", (room: RoomState) => {
     playerListEl.appendChild(li);
   }
 
+  if (room.phase === "lobby" && !studySection.classList.contains("hidden")) return;
   if (room.phase === "lobby") showOnly(lobbySection);
 });
 
@@ -474,3 +498,4 @@ resetSessionBtn.addEventListener("click", () => {
   highForestFrame.src = "";
   socket.emit("room:reset-session");
 });
+
