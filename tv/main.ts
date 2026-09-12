@@ -86,7 +86,6 @@ function showOnly(section: HTMLElement) {
 // ===========================================================================
 
 const bootScreen = document.getElementById("boot-screen")!;
-const bootBar = document.getElementById("boot-progress-bar")!;
 const bootLabel = document.getElementById("boot-label")!;
 const appShell = document.getElementById("app-shell")!;
 
@@ -94,8 +93,7 @@ const BOOT_MIN_MS = 1600;
 const bootStartedAt = performance.now();
 let roomIsReady = false;
 
-function setBootProgress(percent: number, label?: string) {
-  bootBar.style.width = `${percent}%`;
+function setBootProgress(_percent: number, label?: string) {
   if (label) bootLabel.textContent = label;
 }
 
