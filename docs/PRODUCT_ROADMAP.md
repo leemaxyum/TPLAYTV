@@ -1,8 +1,8 @@
-# TPLAYTV Product Roadmap
+# Fleavo Product Roadmap
 
 ## Product direction
 
-TPLAYTV is an open-source, local-first living-room game platform. One shared TV runs the room; friends join with phones on the same Wi-Fi; a game should begin in under 90 seconds.
+Fleavo is an open-source, local-first shared room platform. One TV or laptop host runs the room; friends or students join with phones on the same Wi-Fi; a game, study board, or knowledge booster should begin in under 90 seconds.
 
 The target feeling is premium, calm, and tactile: the clarity and restraint associated with great consumer hardware, without copying another company's UI, branding, assets, or trade dress.
 
@@ -41,7 +41,7 @@ Every game enters **Spec Ready** only after answering:
 
 ## Release sequence
 
-### 0.2 Party Loop Foundation
+### Shipped: Party Loop Foundation
 
 **Goal:** two to eight people can join, play multiple games, see results, and recover from ordinary failures.
 
@@ -52,7 +52,7 @@ Every game enters **Spec Ready** only after answering:
 - Keep a session leaderboard across games and add a host reset-session control.
 - Move game lifecycle hooks toward `start`, `handleInput`, and `cancel` as new games are added. Do not build a generic engine before it is needed.
 
-### 0.3 Color Clash
+### Shipped: Color Clash
 
 **Player promise:** Spot the right colour faster than your friends and steal the round.
 
@@ -64,7 +64,7 @@ Every game enters **Spec Ready** only after answering:
 - **Disconnect:** disconnected players are excluded from the answer quorum; reconnecting players rejoin at the next round.
 - **Done:** a complete 2-8 player session works on real phones, including one disconnect/reconnect test.
 
-### 0.4 Fuse Frenzy
+### Shipped: Fuse Frenzy
 
 **Player promise:** Pass the unstable bomb before it explodes in your hands.
 
@@ -76,7 +76,7 @@ Every game enters **Spec Ready** only after answering:
 - **Disconnect:** if the holder disconnects, server immediately passes to a connected random player and announces it.
 - **Why now:** small state machine, strong room energy, reusable timer/reconnect lessons.
 
-### 0.5 Crowd Dodge
+### Spike: Crowd Dodge
 
 **Player promise:** Survive a shared arena while your friends turn it into chaos.
 
@@ -100,7 +100,7 @@ Fast integration is encouraged; untracked copying is not.
 2. Record source URL, license, author, imported files, changes, and required notices in `THIRD_PARTY_NOTICES.md`.
 3. Keep third-party code isolated under `vendor/` or a clearly attributed module until it is understood.
 4. Do not reuse assets from a code example unless their asset license explicitly permits it. Official Phaser examples are MIT for code, but their assets are not generally reusable.
-5. Adapt mechanics and algorithms into TPLAYTV's server-authoritative protocol; do not embed an unrelated full app inside the product.
+5. Adapt mechanics and algorithms into Fleavo's server-authoritative protocol; do not embed an unrelated full app inside the product.
 6. Every imported game still passes the same real-device and disconnect checklist.
 
 ## Candidate reuse sources
@@ -119,3 +119,14 @@ A feature does not ship because it looks good in one browser tab. It ships when:
 - A full round reaches results without manual refresh.
 - The host can start the next game or reset the session.
 - No secret, API key, or private network detail enters the repository.
+
+## Shipped: Student Study Space MVP
+
+**Player promise:** A room can capture the next useful thought and run a course quiz without exposing who got something wrong.
+
+- Host-owned Notes, Ideas, and Tasks board is LAN-synced in real time.
+- Knowledge Booster imports a small version-1 JSON question set, then supports host load/start/reveal/next.
+- Phones answer once per question and get private confirmation.
+- TV shows aggregate response count before reveal; no public wrong-answer state or learner profile is created.
+- See `docs/STUDY_SPACE_MVP.md`, `docs/KNOWLEDGE_BOOSTER_IMPORT.md`, and `docs/REAL_DEVICE_PLAYTEST.md` for implementation and test gates.
+
