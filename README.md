@@ -60,3 +60,21 @@ stellar-play/
 ├─ tv/                /tv host page
 ├─ controller/        /controller phone page
 ```
+
+## Player join flow
+
+The server owns room membership and player identity. When a phone submits the
+join form, it emits `room:join` with a room code and name. The server verifies
+that the room exists, the name is valid, fewer than eight connected players are
+present, and no existing player is using that name (case-insensitively).
+
+For a valid join, the server creates the player ID, stores it with the socket,
+and broadcasts a fresh `room:state` to the TV and every controller. The joining
+phone receives `room:joined` and saves its room code/player ID locally so a
+brief Wi-Fi drop can use `player:reconnect` instead of creating a duplicate
+player or losing its score.
+
+If validation fails, only that phone receives `connection:error`; the room
+state is not changed. Player names remain reserved through the 30-second
+reconnect grace period so the TV never has to distinguish two players with the
+same visible name.

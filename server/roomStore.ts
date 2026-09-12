@@ -44,6 +44,14 @@ export function isRoomFull(room: InternalRoom): boolean {
   return room.players.filter((p) => p.connected).length >= MAX_PLAYERS;
 }
 
+// Names are part of the TV-facing player identity. Keep them unique while a
+// player is still in the room, including during the reconnect grace period,
+// so the host never has to guess which "Alex" is which.
+export function hasPlayerNamed(room: InternalRoom, name: string): boolean {
+  const normalizedName = name.toLocaleLowerCase();
+  return room.players.some((player) => player.name.toLocaleLowerCase() === normalizedName);
+}
+
 export function addPlayer(
   room: InternalRoom,
   playerId: string,
