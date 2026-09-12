@@ -2,6 +2,7 @@ import QRCode from "qrcode";
 import { connectSocket } from "../src/network/client";
 import type {
   ColorClashStage,
+  FuseFrenzyStage,
   GameLibraryEntry,
   GameResultsPayload,
   GameStartedPayload,
@@ -44,6 +45,7 @@ const resetSessionBtn = document.getElementById("reset-session-btn")!;
 
 const TRIVIA_RUSH_ID = "trivia-rush";
 const COLOR_CLASH_ID = "color-clash";
+const FUSE_FRENZY_ID = "fuse-frenzy";
 const HIGH_FOREST_ID = "high-forest-quest";
 
 let library: GameLibraryEntry[] = [];
@@ -342,6 +344,7 @@ socket.on("game:started", (payload: GameStartedPayload) => {
   const isHighForest = payload.gameId === HIGH_FOREST_ID;
   const isTrivia = payload.gameId === TRIVIA_RUSH_ID;
   const isColorClash = payload.gameId === COLOR_CLASH_ID;
+  const isFuseFrenzy = payload.gameId === FUSE_FRENZY_ID;
 
   highForestFrame.classList.toggle("hidden", !isHighForest);
   gameStageEl.classList.toggle("hidden", isHighForest || isTrivia || isColorClash);
@@ -353,7 +356,8 @@ socket.on("game:started", (payload: GameStartedPayload) => {
     highForestFrame.src = "/games/high-forest/index.html";
   } else {
     highForestFrame.src = "";
-    if (!isTrivia && !isColorClash) gameStageEl.textContent = "Get ready…";
+    if (isFuseFrenzy) gameStageEl.textContent = "Lighting the fuse…";
+    else if (!isTrivia && !isColorClash) gameStageEl.textContent = "Get ready…";
   }
   showOnly(gameViewSection);
 });
@@ -363,8 +367,14 @@ socket.on("game:input", (input: { action: string; pressed: boolean }) => {
   highForestFrame.contentWindow.postMessage({ type: "remote-input", ...input }, window.location.origin);
 });
 
-socket.on("game:state", (state: QuickDrawStage | TriviaStage | ColorClashStage) => {
-  if (state.stage === "color-question") {
+socket.on("game:state", (state: QuickDrawStage | TriviaStage | ColorClashStage | FuseFrenzyStage) => {
+  if (state.stage === "fuse-turn") {
+    gameStageEl.className = "game-stage ready";
+    gameStageEl.textContent = state.holderName + " has the bomb";
+  } else if (state.stage === "fuse-eliminated") {
+    gameStageEl.className = "game-stage go";
+    gameStageEl.textContent = state.playerName + " exploded!";
+  } else if (state.stage === "color-question") {
     colorClashProgressEl.textContent = "Round " + (state.questionIndex + 1) + " / " + state.totalQuestions;
     colorClashWordEl.textContent = state.word.toUpperCase();
     colorClashWordEl.style.color = state.inkColor;
