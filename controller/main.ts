@@ -190,6 +190,27 @@ socket.on("study:state", (board: { items: Array<{ id: string; lane: "notes" | "i
   }
 });
 
+type StudentModule = { id: string; title: string; topic: string; description: string; sections: Array<{ id: string; title: string; theory: string; practice: string; solution: string }> };
+socket.on("module:state", (module: StudentModule | null) => {
+  const existing = document.getElementById("student-active-module");
+  existing?.remove();
+  if (!module) return;
+  const moduleView = document.createElement("section");
+  moduleView.id = "student-active-module";
+  moduleView.className = "student-active-module";
+  const heading = document.createElement("h2"); heading.textContent = `${module.title} · ${module.topic}`; moduleView.appendChild(heading);
+  const intro = document.createElement("p"); intro.textContent = module.description; moduleView.appendChild(intro);
+  module.sections.forEach((section, index) => {
+    const lesson = document.createElement("details"); lesson.className = "student-lesson"; lesson.open = index === 0;
+    const summary = document.createElement("summary"); summary.textContent = `${index + 1}. ${section.title}`; lesson.appendChild(summary);
+    const theory = document.createElement("p"); theory.textContent = section.theory; lesson.appendChild(theory);
+    const practice = document.createElement("p"); practice.className = "student-practice"; practice.textContent = `Try it: ${section.practice}`; lesson.appendChild(practice);
+    const solution = document.createElement("details"); solution.className = "student-solution"; const solutionSummary = document.createElement("summary"); solutionSummary.textContent = "Show worked solution"; solution.appendChild(solutionSummary); const solutionText = document.createElement("p"); solutionText.textContent = section.solution; solution.appendChild(solutionText); lesson.appendChild(solution);
+    moduleView.appendChild(lesson);
+  });
+  studyPhoneViewEl.prepend(moduleView);
+});
+
 type BoosterPhoneState = { loaded: false } | { loaded: true; questionIndex: number; totalQuestions: number; phase: "idle" | "question" | "reveal" | "complete"; question: { prompt: string; choices: string[] } | null };
 socket.on("booster:state", (state: BoosterPhoneState) => {
   if (!state.loaded || state.phase === "idle" || state.phase === "complete" || !state.question) return;
@@ -329,6 +350,7 @@ socket.on("game:results", (payload: GameResultsPayload) => {
   }
   showOnly(resultsViewEl);
 });
+
 
 
 

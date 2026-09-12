@@ -435,6 +435,11 @@ body {
 .profile-list div { display: flex; justify-content: space-between; border: 1px solid var(--surface-border); border-radius: 12px; background: var(--bg-1); padding: 0.8rem; }
 .profile-list dt { color: var(--text-1); }.profile-list dd { margin: 0; font-weight: 800; }
 .help-list { display: grid; gap: 0.65rem; margin: 1rem 0; padding-left: 1.15rem; color: var(--text-1); line-height: 1.45; }
+.student-active-module { margin-bottom: 1rem; border: 1px solid var(--surface-border); border-radius: 14px; background: var(--bg-1); padding: 0.9rem; }
+.student-active-module h2 { margin: 0; font-size: 1.05rem; line-height: 1.35; }.student-active-module > p { color: var(--text-1); font-size: 0.88rem; line-height: 1.45; }
+.student-lesson { border-top: 1px solid var(--surface-border); padding: 0.7rem 0; }.student-lesson summary { cursor: pointer; font-weight: 800; }.student-lesson p { color: var(--text-1); font-size: 0.9rem; line-height: 1.5; }
+.student-practice { color: var(--text-0) !important; font-weight: 700; }.student-solution { border: 1px solid var(--surface-border); border-radius: 10px; padding: 0.65rem; }.student-solution summary { color: var(--accent); font-size: 0.85rem; }
+
 
 
 

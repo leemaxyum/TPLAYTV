@@ -1,5 +1,6 @@
 import QRCode from "qrcode";
 import { connectSocket } from "../src/network/client";
+import { starterModules, type TeacherModule } from "./learningModules";
 import type {
   ColorClashStage,
   FuseFrenzyStage,
@@ -64,6 +65,21 @@ const builderLoadBtn = document.getElementById("builder-load-btn")!;
 const builderClearBtn = document.getElementById("builder-clear-btn")!;
 const builderStatusEl = document.getElementById("builder-status")!;
 const builderDraftEl = document.getElementById("builder-draft")!;
+const starterModulesEl = document.getElementById("starter-modules")!;
+const savedModulesEl = document.getElementById("saved-modules")!;
+const activeModuleEl = document.getElementById("active-module")!;
+const moduleTitleEl = document.getElementById("module-title-input") as HTMLInputElement;
+const moduleTopicEl = document.getElementById("module-topic-input") as HTMLInputElement;
+const moduleDescriptionEl = document.getElementById("module-description-input") as HTMLTextAreaElement;
+const lessonTitleEl = document.getElementById("lesson-title-input") as HTMLInputElement;
+const lessonTheoryEl = document.getElementById("lesson-theory-input") as HTMLTextAreaElement;
+const lessonPracticeEl = document.getElementById("lesson-practice-input") as HTMLTextAreaElement;
+const lessonSolutionEl = document.getElementById("lesson-solution-input") as HTMLTextAreaElement;
+const lessonAddBtn = document.getElementById("lesson-add-btn")!;
+const moduleSaveBtn = document.getElementById("module-save-btn")!;
+const moduleShareBtn = document.getElementById("module-share-btn")!;
+const moduleBuilderStatusEl = document.getElementById("module-builder-status")!;
+const moduleDraftEl = document.getElementById("module-draft")!;
 
 const TRIVIA_RUSH_ID = "trivia-rush";
 const COLOR_CLASH_ID = "color-clash";
@@ -77,6 +93,9 @@ let studyPersistenceReady = false;
 type BuilderQuestion = { id: string; prompt: string; choices: [string, string, string, string]; correctIndex: number; explanation: string };
 let builderQuestions: BuilderQuestion[] = [];
 const STUDY_STORAGE_KEY = "fleavo:host-study-board";
+const MODULE_LIBRARY_KEY = "fleavo:teacher-modules";
+type ModuleDraft = Omit<TeacherModule, "id"> & { sections: TeacherModule["sections"] };
+let moduleSections: TeacherModule["sections"] = [];
 
 // Fixed palette so avatar colors stay stable across re-renders/sorts.
 const AVATAR_COLORS = ["#0137f2", "#e63946", "#2ec4b6", "#fee500", "#ff6b35", "#8338ec", "#06d6a0", "#ef476f"];
@@ -420,6 +439,87 @@ builderLoadBtn.addEventListener("click", () => {
   socket.emit("booster:import", { content: JSON.stringify({ version: 1, title, topic: builderTopicEl.value.trim() || undefined, questions: builderQuestions }) });
 });
 
+function renderActiveModule(module: TeacherModule | null) {
+  activeModuleEl.innerHTML = "";
+  if (!module) { activeModuleEl.textContent = "No module is currently shared with this room."; return; }
+  const title = document.createElement("h4"); title.textContent = `${module.title} · ${module.topic}`; activeModuleEl.appendChild(title);
+  const overview = document.createElement("p"); overview.textContent = module.description; activeModuleEl.appendChild(overview);
+  module.sections.forEach((section, index) => {
+    const card = document.createElement("details"); card.className = "active-lesson"; card.open = index === 0;
+    const summary = document.createElement("summary"); summary.textContent = `${index + 1}. ${section.title}`; card.appendChild(summary);
+    const theory = document.createElement("p"); theory.textContent = section.theory; card.appendChild(theory);
+    const practice = document.createElement("p"); practice.className = "lesson-practice"; practice.textContent = `Practice: ${section.practice}`; card.appendChild(practice);
+    const solution = document.createElement("p"); solution.className = "lesson-solution"; solution.textContent = `Worked solution: ${section.solution}`; card.appendChild(solution);
+    activeModuleEl.appendChild(card);
+  });
+}
+
+function readModuleLibrary(): TeacherModule[] {
+  try { const saved = JSON.parse(localStorage.getItem(MODULE_LIBRARY_KEY) ?? "[]"); return Array.isArray(saved) ? saved : []; } catch { return []; }
+}
+
+function saveModuleLibrary(modules: TeacherModule[]) { try { localStorage.setItem(MODULE_LIBRARY_KEY, JSON.stringify(modules)); } catch { moduleBuilderStatusEl.textContent = "Your browser could not save the module library."; } }
+
+function renderSavedModules() {
+  savedModulesEl.innerHTML = "";
+  const saved = readModuleLibrary();
+  if (!saved.length) { savedModulesEl.textContent = "Your local module library is empty. Build a lesson section, then save it here."; return; }
+  saved.forEach((module) => {
+    const card = document.createElement("article"); card.className = "saved-module";
+    card.innerHTML = `<strong>${module.title}</strong><span>${module.topic} · ${module.sections.length} section${module.sections.length === 1 ? "" : "s"}</span>`;
+    const open = document.createElement("button"); open.type = "button"; open.textContent = "Share to room"; open.addEventListener("click", () => socket.emit("module:load", { module })); card.appendChild(open);
+    const remove = document.createElement("button"); remove.type = "button"; remove.className = "quiet"; remove.textContent = "Delete"; remove.addEventListener("click", () => { saveModuleLibrary(readModuleLibrary().filter((entry) => entry.id !== module.id)); renderSavedModules(); }); card.appendChild(remove);
+    savedModulesEl.appendChild(card);
+  });
+}
+
+function renderModuleDraft() {
+  moduleDraftEl.innerHTML = "";
+  moduleSections.forEach((section, index) => {
+    const item = document.createElement("li"); item.textContent = `${index + 1}. ${section.title}`;
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Remove"; remove.addEventListener("click", () => { moduleSections = moduleSections.filter((entry) => entry.id !== section.id); renderModuleDraft(); });
+    item.appendChild(remove); moduleDraftEl.appendChild(item);
+  });
+}
+
+function currentModuleDraft(): TeacherModule | null {
+  const title = moduleTitleEl.value.trim(), topic = moduleTopicEl.value.trim(), description = moduleDescriptionEl.value.trim();
+  if (!title || !topic || !description || !moduleSections.length) return null;
+  return { id: crypto.randomUUID(), title, topic, description, sections: moduleSections };
+}
+
+function clearLessonFields() { lessonTitleEl.value = ""; lessonTheoryEl.value = ""; lessonPracticeEl.value = ""; lessonSolutionEl.value = ""; }
+
+lessonAddBtn.addEventListener("click", () => {
+  const title = lessonTitleEl.value.trim(), theory = lessonTheoryEl.value.trim(), practice = lessonPracticeEl.value.trim(), solution = lessonSolutionEl.value.trim();
+  if (!title || !theory || !practice || !solution) { moduleBuilderStatusEl.textContent = "A lesson needs a title, theory, practice prompt, and worked solution."; return; }
+  if (moduleSections.length >= 16) { moduleBuilderStatusEl.textContent = "Keep one module to 16 sections or fewer."; return; }
+  moduleSections.push({ id: crypto.randomUUID(), title, theory, practice, solution }); clearLessonFields(); renderModuleDraft(); moduleBuilderStatusEl.textContent = `${moduleSections.length} section${moduleSections.length === 1 ? "" : "s"} ready.`;
+});
+
+moduleSaveBtn.addEventListener("click", () => {
+  const module = currentModuleDraft();
+  if (!module) { moduleBuilderStatusEl.textContent = "Add module details and at least one complete lesson section first."; return; }
+  saveModuleLibrary([...readModuleLibrary(), module]); renderSavedModules(); moduleBuilderStatusEl.textContent = `Saved “${module.title}” to this browser.`;
+});
+
+moduleShareBtn.addEventListener("click", () => {
+  const module = currentModuleDraft();
+  if (!module) { moduleBuilderStatusEl.textContent = "Add module details and at least one complete lesson section first."; return; }
+  socket.emit("module:load", { module });
+});
+
+starterModules.forEach((module) => {
+  const card = document.createElement("article"); card.className = "starter-module";
+  card.innerHTML = `<p>${module.topic}</p><h4>${module.title}</h4><span>${module.description}</span>`;
+  const open = document.createElement("button"); open.type = "button"; open.textContent = "Open for room"; open.addEventListener("click", () => socket.emit("module:load", { module })); card.appendChild(open);
+  starterModulesEl.appendChild(card);
+});
+renderSavedModules();
+
+socket.on("module:error", (message: string) => { moduleBuilderStatusEl.textContent = message; });
+socket.on("module:state", (module: TeacherModule | null) => { renderActiveModule(module); });
+
 socket.on("booster:error", (message: string) => { boosterStatusEl.textContent = message; });
 socket.on("booster:state", (state: BoosterState) => {
   if (!state.loaded) { boosterStatusEl.textContent = "Load a small course set to begin. Phone answers stay private."; boosterLiveEl.innerHTML = ""; return; }
@@ -603,6 +703,7 @@ resetSessionBtn.addEventListener("click", () => {
   highForestFrame.src = "";
   socket.emit("room:reset-session");
 });
+
 
 
 
