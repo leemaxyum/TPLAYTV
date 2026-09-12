@@ -109,7 +109,7 @@ function finishBootIfReady() {
   }, remaining);
 }
 
-setBootProgress(12, "Starting Stellar Play…");
+setBootProgress(12, "Opening Fleavo…");
 
 // Safety net: never let the boot screen hang forever if something is slow
 // (e.g. first-run dependency install still finishing) — reveal the app
@@ -144,7 +144,7 @@ const DEFAULT_SETTINGS: Settings = {
   density: "comfortable",
 };
 
-const SETTINGS_KEY = "stellarplay:tv-settings";
+const SETTINGS_KEY = "fleavo:tv-settings";
 
 function loadSettings(): Settings {
   try {
