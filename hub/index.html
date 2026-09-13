@@ -47,8 +47,8 @@
       <section id="library-view" class="hub-view hidden">
         <div class="library-heading"><div><p class="eyebrow">Your curriculum</p><h1>Build breadth. Earn depth.</h1></div><input id="library-search" placeholder="Search a topic, e.g. recursion" aria-label="Search curriculum" /></div>
         <div id="track-list" class="track-list"></div>
-        <article id="lesson-panel" class="lesson-panel hidden" aria-live="polite"></article>
       </section>
+      <section id="lesson-view" class="hub-view hidden" aria-live="polite"><button id="back-to-library" class="quiet reader-back">← Back to library</button><article id="lesson-panel" class="lesson-panel"></article></section>
 
       <section id="review-view" class="hub-view hidden">
         <p class="eyebrow">Active recall</p><h1>Review what you want to keep.</h1>
@@ -59,8 +59,10 @@
         </div>
       </section>
     </main>
+    <aside id="focus-player" class="focus-player"><div id="focus-drag-handle" class="focus-drag">Focus · drag</div><p id="player-topic">Choose a lesson</p><strong id="player-time">25:00</strong><div><button id="player-toggle" type="button">Play</button><button id="player-reset" type="button" class="quiet">Reset</button></div></aside>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
+
 
 
