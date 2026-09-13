@@ -3,6 +3,7 @@ import { hubTracks, type HubTopic } from "./catalog";
 const views = {
   today: document.getElementById("today-view")!,
   library: document.getElementById("library-view")!,
+  lesson: document.getElementById("lesson-view")!,
   review: document.getElementById("review-view")!,
 };
 const STORAGE = "fleavo:hub-learn:v1";
@@ -26,7 +27,7 @@ document.querySelectorAll<HTMLButtonElement>(".hub-nav").forEach((button) => but
 const focusTitle = document.getElementById("focus-title")!;
 const focusLabel = document.getElementById("focus-label")!;
 const minutesSelect = document.getElementById("focus-minutes") as HTMLSelectElement;
-function renderTimer() { focusTitle.textContent = `${Math.floor(remainingSeconds / 60).toString().padStart(2, "0")}:${(remainingSeconds % 60).toString().padStart(2, "0")}`; }
+function renderTimer() { const display = `${Math.floor(remainingSeconds / 60).toString().padStart(2, "0")}:${(remainingSeconds % 60).toString().padStart(2, "0")}`; focusTitle.textContent = display; document.getElementById("player-time")!.textContent = display; }
 function resetTimer() { if (timer) clearInterval(timer); timer = null; remainingSeconds = Number(minutesSelect.value) * 60; renderTimer(); document.getElementById("focus-start")!.textContent = "Start focus"; focusLabel.textContent = "Choose a topic, then begin a calm focus block."; }
 document.getElementById("focus-start")!.addEventListener("click", () => {
   const button = document.getElementById("focus-start")!;
@@ -43,11 +44,12 @@ function renderToday() {
   document.getElementById("next-copy")!.textContent = next.summary;
   document.getElementById("progress-count")!.textContent = String(progress.completed.length);
   document.getElementById("streak-copy")!.textContent = progress.focusMinutes ? `${progress.focusMinutes} focused minute${progress.focusMinutes === 1 ? "" : "s"} logged locally.` : "Your first focused block starts a streak.";
-  (document.getElementById("open-next") as HTMLButtonElement).onclick = () => { activeTopic = next; showView("library"); renderLibrary(); renderLesson(next); };
+  (document.getElementById("open-next") as HTMLButtonElement).onclick = () => openLesson(next);
 }
 
 const trackList = document.getElementById("track-list")!;
 const lessonPanel = document.getElementById("lesson-panel")!;
+function openLesson(topic: HubTopic) { activeTopic = topic; document.getElementById("player-topic")!.textContent = topic.title; showView("lesson"); renderLesson(topic); window.scrollTo({ top: 0, behavior: "smooth" }); }
 function renderLibrary(filter = "") {
   trackList.innerHTML = "";
   const query = filter.toLowerCase().trim();
@@ -57,24 +59,25 @@ function renderLibrary(filter = "") {
     const section = document.createElement("section"); section.className = "track";
     section.innerHTML = `<div class="track-heading"><div><p>${track.topicCount} curriculum topics</p><h2>${track.title}</h2><span>${track.description}</span></div></div>`;
     const cards = document.createElement("div"); cards.className = "topic-cards";
-    shown.forEach((topic) => { const card = document.createElement("button"); card.className = `topic-card ${progress.completed.includes(topic.id) ? "complete" : ""}`; card.innerHTML = `<strong>${topic.title}</strong><span>${topic.summary}</span><em>${progress.completed.includes(topic.id) ? "Completed" : "Open lesson"}</em>`; card.addEventListener("click", () => { activeTopic = topic; renderLesson(topic); }); cards.appendChild(card); });
+    shown.forEach((topic) => { const card = document.createElement("button"); card.className = `topic-card ${progress.completed.includes(topic.id) ? "complete" : ""}`; card.innerHTML = `<strong>${topic.title}</strong><span>${topic.summary}</span><em>${progress.completed.includes(topic.id) ? "Completed" : "Open lesson"}</em>`; card.addEventListener("click", () => openLesson(topic)); cards.appendChild(card); });
     section.appendChild(cards); trackList.appendChild(section);
   });
 }
 
 function renderLesson(topic: HubTopic) {
-  lessonPanel.classList.remove("hidden");
   const completed = progress.completed.includes(topic.id);
   lessonPanel.innerHTML = `<p class="eyebrow">Deep lesson</p><h2>${topic.title}</h2><p class="lesson-summary">${topic.summary}</p><section><h3>Learn it</h3><p>${topic.learn}</p></section><section class="application"><h3>Real-world use</h3><p>${topic.realWorld}</p></section><section><h3>Try from memory</h3><p>${topic.practice}</p><details><summary>Show worked solution</summary><p>${topic.solution}</p></details></section>`;
   const actions = document.createElement("div"); actions.className = "lesson-actions";
-  const focus = document.createElement("button"); focus.textContent = "Focus on this"; focus.addEventListener("click", () => { showView("today"); focusLabel.textContent = `Ready for ${topic.title}. Start when you are ready.`; }); actions.appendChild(focus);
+  const focus = document.createElement("button"); focus.textContent = "Focus on this"; focus.addEventListener("click", () => { document.getElementById("player-topic")!.textContent = topic.title; document.getElementById("player-toggle")!.click(); }); actions.appendChild(focus);
+  const study = document.createElement("button"); study.className = "quiet"; study.textContent = "Flashcards & quiz"; study.addEventListener("click", () => { showView("review"); renderReview(); }); actions.appendChild(study);
   const complete = document.createElement("button"); complete.className = "quiet"; complete.textContent = completed ? "Mark not done" : "Mark complete"; complete.addEventListener("click", () => { progress.completed = completed ? progress.completed.filter((id) => id !== topic.id) : [...progress.completed, topic.id]; saveProgress(); renderToday(); renderLibrary((document.getElementById("library-search") as HTMLInputElement).value); renderLesson(topic); }); actions.appendChild(complete); lessonPanel.appendChild(actions);
 }
+document.getElementById("back-to-library")!.addEventListener("click", () => showView("library"));
 document.getElementById("library-search")!.addEventListener("input", (event) => renderLibrary((event.target as HTMLInputElement).value));
 
 function dueTopics() { const now = Date.now(); return allTopics().filter((topic) => { const review = progress.reviews[topic.id]; return !review || Date.parse(review.dueAt) <= now; }); }
 function renderReview() {
-  const topics = allTopics(); const due = dueTopics(); const card = due[0] ?? topics[progress.flashcardIndex % topics.length];
+  const topics = allTopics(); const due = dueTopics(); const card = activeTopic ?? due[0] ?? topics[progress.flashcardIndex % topics.length];
   document.getElementById("review-status")!.textContent = due.length ? `${due.length} concept${due.length === 1 ? "" : "s"} ready for review today.` : "You are caught up. Explore a card to keep the habit warm.";
   document.getElementById("flashcard-topic")!.textContent = card.title;
   document.getElementById("flashcard-question")!.textContent = card.flashcard.question;
@@ -93,7 +96,10 @@ function scheduleReview(days: number) {
 }
 document.getElementById("flashcard-again")!.addEventListener("click", () => scheduleReview(1));
 document.getElementById("flashcard-easy")!.addEventListener("click", () => scheduleReview(3));
+document.getElementById("player-toggle")!.addEventListener("click", () => document.getElementById("focus-start")!.click());
+document.getElementById("player-reset")!.addEventListener("click", resetTimer);
 
 renderTimer(); renderToday(); renderLibrary(); renderReview();
+
 
 
