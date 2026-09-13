@@ -20,7 +20,8 @@ function allTopics() { return hubTracks.flatMap((track) => track.topics); }
 
 function showView(view: keyof typeof views) {
   Object.entries(views).forEach(([name, element]) => element.classList.toggle("hidden", name !== view));
-  document.querySelectorAll<HTMLButtonElement>(".hub-nav").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
+  const navigationView = view === "lesson" ? "library" : view;
+  document.querySelectorAll<HTMLButtonElement>(".hub-nav").forEach((button) => button.classList.toggle("active", button.dataset.view === navigationView));
 }
 document.querySelectorAll<HTMLButtonElement>(".hub-nav").forEach((button) => button.addEventListener("click", () => showView(button.dataset.view as keyof typeof views)));
 
@@ -28,12 +29,12 @@ const focusTitle = document.getElementById("focus-title")!;
 const focusLabel = document.getElementById("focus-label")!;
 const minutesSelect = document.getElementById("focus-minutes") as HTMLSelectElement;
 function renderTimer() { const display = `${Math.floor(remainingSeconds / 60).toString().padStart(2, "0")}:${(remainingSeconds % 60).toString().padStart(2, "0")}`; focusTitle.textContent = display; document.getElementById("player-time")!.textContent = display; }
-function resetTimer() { if (timer) clearInterval(timer); timer = null; remainingSeconds = Number(minutesSelect.value) * 60; renderTimer(); document.getElementById("focus-start")!.textContent = "Start focus"; focusLabel.textContent = "Choose a topic, then begin a calm focus block."; }
+function resetTimer() { if (timer) clearInterval(timer); timer = null; remainingSeconds = Number(minutesSelect.value) * 60; renderTimer(); document.getElementById("focus-start")!.textContent = "Start focus"; document.getElementById("player-toggle")!.textContent = "Play"; focusLabel.textContent = "Choose a topic, then begin a calm focus block."; }
 document.getElementById("focus-start")!.addEventListener("click", () => {
   const button = document.getElementById("focus-start")!;
-  if (timer) { clearInterval(timer); timer = null; button.textContent = "Resume focus"; focusLabel.textContent = "Paused. One breath, then continue when ready."; return; }
-  button.textContent = "Pause"; focusLabel.textContent = `Working on ${activeTopic.title}. Keep the next step small.`;
-  timer = setInterval(() => { remainingSeconds--; renderTimer(); if (remainingSeconds <= 0) { clearInterval(timer!); timer = null; progress.focusMinutes += Number(minutesSelect.value); progress.lastFocusDate = new Date().toDateString(); saveProgress(); focusLabel.textContent = "Focus block complete. Write one thing you can now explain."; button.textContent = "Start another"; renderToday(); } }, 1000);
+  if (timer) { clearInterval(timer); timer = null; button.textContent = "Resume focus"; document.getElementById("player-toggle")!.textContent = "Resume"; focusLabel.textContent = "Paused. One breath, then continue when ready."; return; }
+  button.textContent = "Pause"; document.getElementById("player-toggle")!.textContent = "Pause"; focusLabel.textContent = `Working on ${activeTopic.title}. Keep the next step small.`;
+  timer = setInterval(() => { remainingSeconds--; renderTimer(); if (remainingSeconds <= 0) { clearInterval(timer!); timer = null; progress.focusMinutes += Number(minutesSelect.value); progress.lastFocusDate = new Date().toDateString(); saveProgress(); focusLabel.textContent = "Focus block complete. Write one thing you can now explain."; button.textContent = "Start another"; document.getElementById("player-toggle")!.textContent = "Play again"; renderToday(); } }, 1000);
 });
 document.getElementById("focus-reset")!.addEventListener("click", resetTimer);
 minutesSelect.addEventListener("change", resetTimer);
@@ -83,13 +84,13 @@ function renderReview() {
   document.getElementById("flashcard-question")!.textContent = card.flashcard.question;
   const answer = document.getElementById("flashcard-answer")!; answer.textContent = card.flashcard.answer; answer.classList.add("hidden");
   document.getElementById("flashcard-reveal")!.textContent = "Reveal";
-  const quiz = topics[progress.quizIndex % topics.length]; document.getElementById("quiz-question")!.textContent = quiz.quiz.question;
+  const quiz = card; document.getElementById("quiz-question")!.textContent = quiz.quiz.question;
   const options = document.getElementById("quiz-options")!; options.innerHTML = ""; document.getElementById("quiz-feedback")!.textContent = "";
   quiz.quiz.options.forEach((option, index) => { const button = document.createElement("button"); button.textContent = option; button.addEventListener("click", () => { options.querySelectorAll("button").forEach((other) => (other as HTMLButtonElement).disabled = true); button.classList.add(index === quiz.quiz.correct ? "correct" : "incorrect"); document.getElementById("quiz-feedback")!.textContent = index === quiz.quiz.correct ? `Correct. ${quiz.quiz.explanation}` : `Not quite. ${quiz.quiz.explanation}`; }); options.appendChild(button); });
 }
 document.getElementById("flashcard-reveal")!.addEventListener("click", () => { document.getElementById("flashcard-answer")!.classList.remove("hidden"); document.getElementById("flashcard-reveal")!.textContent = "Answer shown"; });
 function scheduleReview(days: number) {
-  const topics = allTopics(); const due = dueTopics(); const card = due[0] ?? topics[progress.flashcardIndex % topics.length];
+  const topics = allTopics(); const due = dueTopics(); const card = activeTopic ?? due[0] ?? topics[progress.flashcardIndex % topics.length];
   const previous = progress.reviews[card.id]; const intervalDays = days === 1 ? 1 : Math.min(21, Math.max(3, (previous?.intervalDays ?? 1) * 2));
   progress.reviews[card.id] = { intervalDays, dueAt: new Date(Date.now() + intervalDays * 86_400_000).toISOString(), lastReviewedAt: new Date().toISOString() };
   progress.flashcardIndex++; progress.quizIndex++; saveProgress(); renderReview();
@@ -98,8 +99,15 @@ document.getElementById("flashcard-again")!.addEventListener("click", () => sche
 document.getElementById("flashcard-easy")!.addEventListener("click", () => scheduleReview(3));
 document.getElementById("player-toggle")!.addEventListener("click", () => document.getElementById("focus-start")!.click());
 document.getElementById("player-reset")!.addEventListener("click", resetTimer);
+const player = document.getElementById("focus-player")!;
+const dragHandle = document.getElementById("focus-drag-handle")!;
+let dragging = false; let offsetX = 0; let offsetY = 0;
+dragHandle.addEventListener("pointerdown", (event) => { const box = player.getBoundingClientRect(); dragging = true; offsetX = event.clientX - box.left; offsetY = event.clientY - box.top; dragHandle.setPointerCapture(event.pointerId); });
+dragHandle.addEventListener("pointermove", (event) => { if (!dragging) return; player.style.left = `${Math.max(8, event.clientX - offsetX)}px`; player.style.top = `${Math.max(8, event.clientY - offsetY)}px`; player.style.right = "auto"; player.style.bottom = "auto"; });
+dragHandle.addEventListener("pointerup", () => { dragging = false; });
 
 renderTimer(); renderToday(); renderLibrary(); renderReview();
+
 
 
 
