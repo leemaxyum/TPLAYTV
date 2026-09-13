@@ -183,3 +183,33 @@ Recommended companion sources:
 
 Solo learning owns private progress, flashcards, Pomodoro sessions, personal notes, and course modules. The Recreation Room owns social games and host-led shared activity. A learner can optionally bring a solo module into a Fleavo room, but the social room must never be required to access personal learning.
 
+## Implemented library snapshot — September 2026
+
+The first live curriculum tranche is authored locally in `hub/catalog.ts`. It currently includes 25 **Programming Languages Library** lessons, in addition to the wider cross-discipline starter curriculum. Each live lesson has a dedicated reader view with:
+
+- a plain-language explanation and real-world use case;
+- a retrieval prompt with an original worked solution;
+- one flashcard and a topic-matched self-check quiz;
+- completion tracking saved in the learner's browser.
+
+### Programming Languages Library sequence
+
+1. Why languages exist, source code, runtimes, syntax/semantics, types, values/references, and ownership.
+2. Programming paradigms plus API contracts and compatibility.
+3. C++ toolchain, references and `const`, RAII, ownership, smart pointers, standard containers, and failure modelling.
+4. Python/C++ trade-offs, cross-language testing, and a deliberate interview-practice loop.
+5. JavaScript host environments, values/coercion, objects and immutability, closures, asynchronous work, TypeScript types/generics, UI state, and a local study-tracker project.
+
+The visible lesson count is deliberately kept equal to the actual authored lesson count; planned subjects are documented in the 120-topic map rather than presented as already available content.
+
+## Current interaction model
+
+- **Today** presents one next concept, local completion count, and a 25/45/50-minute focus session.
+- **Library** is searchable and opens a topic in a separate reader rather than expanding a dense scrolling card.
+- **Lesson reader** keeps Library highlighted, supports returning to the catalogue, starting a focus block for the active topic, and opening the active topic's review.
+- **Review** binds flashcards, quiz, and spaced-review scheduling to the lesson the learner opened.
+- **Focus player** is a compact, draggable screen-right control with play/pause/reset status synced to the main timer.
+
+All of this is local-first. Browser storage is intentionally device-local; clearing browser data clears the learner's local progress. Cloud sync is not claimed or implied yet.
+
+
