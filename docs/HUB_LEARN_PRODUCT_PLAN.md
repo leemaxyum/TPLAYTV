@@ -15,6 +15,18 @@ The curriculum map contains 120 sequenced topics across programming, discrete ma
 
 Content is authored locally in `hub/catalog.ts`. Detailed study guides live in `TPLAYTV-hub-learn/output/pdf` during production and are verified visually before publication.
 
+### Current shipped interaction slice
+
+The shipped solo experience is deliberately narrower than the long-term platform plan:
+
+- searchable curriculum library with separate lesson-reader pages;
+- per-topic explanation, real-world application, retrieval practice, worked solution, flashcard, and quiz;
+- local browser completion tracking and spaced-review intervals;
+- 25/45/50 minute Pomodoro controls plus a draggable compact focus player;
+- Programming Languages Library expanded through Python, C++, JavaScript, and TypeScript foundations.
+
+The content count displayed in the UI must match the authored lessons in `hub/catalog.ts`. Do not label planned material as live content.
+
 ## Phases
 
 ### Now — offline foundation
@@ -45,3 +57,4 @@ Content is authored locally in `hub/catalog.ts`. Detailed study guides live in `
 ## Definition of a strong first-year outcome
 
 A learner should be able to write and debug small Python programs, describe complexity and core data structures, reason with basic proofs/probability/linear algebra, explain how web systems move data, evaluate a simple ML result, and independently solve progressively harder coding problems.
+

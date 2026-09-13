@@ -46,6 +46,10 @@ The host opens **Study** to add Notes, Ideas, or Tasks. Tasks can be completed f
 
 For a course quiz, paste a version-1 JSON set into **Knowledge Booster** on the Study screen, then Load quiz → Start question → Reveal answer → Next question. Question import rules, a complete example, and a ready-to-use prompt for a course-content agent are in [the Knowledge Booster import contract](docs/KNOWLEDGE_BOOSTER_IMPORT.md).
 
+## Hub Learn — solo study
+
+Open `/hub/` for Fleavo's local-first solo learning space. It is independent from a host room and includes a searchable curriculum library, separate lesson reader, topic-matched flashcards and quizzes, browser-local completion/review data, and Pomodoro focus controls. The initial Programming Languages Library covers core language concepts plus Python, C++, JavaScript, and TypeScript foundations. See [the Hub Learn curriculum](docs/HUB_LEARN_CURRICULUM.md) for the live-content snapshot and the full planned learning map.
+
 Privacy is intentional:
 
 - A phone can submit one answer per question and receives only private confirmation.
@@ -109,4 +113,5 @@ docs/               Product, brand, architecture, import, and playtest guides
 - [Knowledge Booster import contract](docs/KNOWLEDGE_BOOSTER_IMPORT.md)
 - [Architecture guide](docs/ARCHITECTURE.md)
 - [Real-device playtest runbook](docs/REAL_DEVICE_PLAYTEST.md)
+
 
