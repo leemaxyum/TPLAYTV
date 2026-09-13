@@ -6,13 +6,14 @@ const views = {
   review: document.getElementById("review-view")!,
 };
 const STORAGE = "fleavo:hub-learn:v1";
-type Progress = { completed: string[]; focusMinutes: number; lastFocusDate?: string; flashcardIndex: number; quizIndex: number };
+type ReviewRecord = { intervalDays: number; dueAt: string; lastReviewedAt: string };
+type Progress = { completed: string[]; focusMinutes: number; lastFocusDate?: string; flashcardIndex: number; quizIndex: number; reviews: Record<string, ReviewRecord> };
 let progress: Progress = loadProgress();
 let activeTopic: HubTopic = hubTracks[0].topics[0];
 let timer: ReturnType<typeof setInterval> | null = null;
 let remainingSeconds = 25 * 60;
 
-function loadProgress(): Progress { try { return { completed: [], focusMinutes: 0, flashcardIndex: 0, quizIndex: 0, ...JSON.parse(localStorage.getItem(STORAGE) ?? "{}") }; } catch { return { completed: [], focusMinutes: 0, flashcardIndex: 0, quizIndex: 0 }; } }
+function loadProgress(): Progress { try { return { completed: [], focusMinutes: 0, flashcardIndex: 0, quizIndex: 0, reviews: {}, ...JSON.parse(localStorage.getItem(STORAGE) ?? "{}") }; } catch { return { completed: [], focusMinutes: 0, flashcardIndex: 0, quizIndex: 0, reviews: {} }; } }
 function saveProgress() { localStorage.setItem(STORAGE, JSON.stringify(progress)); }
 function allTopics() { return hubTracks.flatMap((track) => track.topics); }
 
@@ -71,8 +72,10 @@ function renderLesson(topic: HubTopic) {
 }
 document.getElementById("library-search")!.addEventListener("input", (event) => renderLibrary((event.target as HTMLInputElement).value));
 
+function dueTopics() { const now = Date.now(); return allTopics().filter((topic) => { const review = progress.reviews[topic.id]; return !review || Date.parse(review.dueAt) <= now; }); }
 function renderReview() {
-  const topics = allTopics(); const card = topics[progress.flashcardIndex % topics.length];
+  const topics = allTopics(); const due = dueTopics(); const card = due[0] ?? topics[progress.flashcardIndex % topics.length];
+  document.getElementById("review-status")!.textContent = due.length ? `${due.length} concept${due.length === 1 ? "" : "s"} ready for review today.` : "You are caught up. Explore a card to keep the habit warm.";
   document.getElementById("flashcard-topic")!.textContent = card.title;
   document.getElementById("flashcard-question")!.textContent = card.flashcard.question;
   const answer = document.getElementById("flashcard-answer")!; answer.textContent = card.flashcard.answer; answer.classList.add("hidden");
@@ -82,7 +85,15 @@ function renderReview() {
   quiz.quiz.options.forEach((option, index) => { const button = document.createElement("button"); button.textContent = option; button.addEventListener("click", () => { options.querySelectorAll("button").forEach((other) => (other as HTMLButtonElement).disabled = true); button.classList.add(index === quiz.quiz.correct ? "correct" : "incorrect"); document.getElementById("quiz-feedback")!.textContent = index === quiz.quiz.correct ? `Correct. ${quiz.quiz.explanation}` : `Not quite. ${quiz.quiz.explanation}`; }); options.appendChild(button); });
 }
 document.getElementById("flashcard-reveal")!.addEventListener("click", () => { document.getElementById("flashcard-answer")!.classList.remove("hidden"); document.getElementById("flashcard-reveal")!.textContent = "Answer shown"; });
-document.getElementById("flashcard-next")!.addEventListener("click", () => { progress.flashcardIndex++; progress.quizIndex++; saveProgress(); renderReview(); });
+function scheduleReview(days: number) {
+  const topics = allTopics(); const due = dueTopics(); const card = due[0] ?? topics[progress.flashcardIndex % topics.length];
+  const previous = progress.reviews[card.id]; const intervalDays = days === 1 ? 1 : Math.min(21, Math.max(3, (previous?.intervalDays ?? 1) * 2));
+  progress.reviews[card.id] = { intervalDays, dueAt: new Date(Date.now() + intervalDays * 86_400_000).toISOString(), lastReviewedAt: new Date().toISOString() };
+  progress.flashcardIndex++; progress.quizIndex++; saveProgress(); renderReview();
+}
+document.getElementById("flashcard-again")!.addEventListener("click", () => scheduleReview(1));
+document.getElementById("flashcard-easy")!.addEventListener("click", () => scheduleReview(3));
 
 renderTimer(); renderToday(); renderLibrary(); renderReview();
+
 
