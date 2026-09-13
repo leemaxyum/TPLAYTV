@@ -52,8 +52,9 @@
 
       <section id="review-view" class="hub-view hidden">
         <p class="eyebrow">Active recall</p><h1>Review what you want to keep.</h1>
+        <p id="review-status" class="review-status" aria-live="polite"></p>
         <div class="review-grid">
-          <article class="flashcard-card"><p class="card-kicker">Flashcards</p><p id="flashcard-topic" class="flashcard-topic">Python Foundations</p><h2 id="flashcard-question">What does assignment do in Python?</h2><p id="flashcard-answer" class="flashcard-answer hidden">It evaluates the right side first, then binds the name on the left to that result.</p><div class="focus-actions"><button id="flashcard-reveal">Reveal</button><button id="flashcard-next" class="quiet">Next card</button></div></article>
+          <article class="flashcard-card"><p class="card-kicker">Flashcards</p><p id="flashcard-topic" class="flashcard-topic">Python Foundations</p><h2 id="flashcard-question">What does assignment do in Python?</h2><p id="flashcard-answer" class="flashcard-answer hidden">It evaluates the right side first, then binds the name on the left to that result.</p><div class="focus-actions"><button id="flashcard-reveal">Reveal</button><button id="flashcard-again" class="quiet">Again tomorrow</button><button id="flashcard-easy" class="quiet">I know this</button></div><p class="review-hint">Reveal the answer, then choose an honest rating. Hub Learn will bring it back at the right time.</p></article>
           <article class="quiz-card"><p class="card-kicker">Self-check quiz</p><h2 id="quiz-question">Why does binary search need sorted data?</h2><div id="quiz-options" class="quiz-options"></div><p id="quiz-feedback"></p></article>
         </div>
       </section>
@@ -61,4 +62,5 @@
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
+
 
