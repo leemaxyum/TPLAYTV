@@ -185,7 +185,7 @@ Solo learning owns private progress, flashcards, Pomodoro sessions, personal not
 
 ## Implemented library snapshot — September 2026
 
-The first live curriculum tranche is authored locally in `hub/catalog.ts`. It currently includes 41 **Programming Languages Library** lessons, in addition to the wider cross-discipline starter curriculum. Each live lesson has a dedicated reader view with:
+The first live curriculum tranche is authored locally in `hub/catalog.ts`. It currently includes 42 **Programming Languages Library** lessons, in addition to the wider cross-discipline starter curriculum. Each live lesson has a dedicated reader view with:
 
 - a plain-language explanation and real-world use case;
 - a retrieval prompt with an original worked solution;
