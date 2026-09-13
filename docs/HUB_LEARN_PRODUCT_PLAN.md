@@ -23,7 +23,7 @@ The shipped solo experience is deliberately narrower than the long-term platform
 - per-topic explanation, real-world application, retrieval practice, worked solution, flashcard, and quiz;
 - local browser completion tracking and spaced-review intervals;
 - 25/45/50 minute Pomodoro controls plus a draggable compact focus player;
-- Programming Languages Library expanded through Python, C++, JavaScript, and TypeScript foundations.
+- Programming Languages Library expanded through Python, C++, JavaScript, and TypeScript foundations, with 41 authored lessons at this milestone.
 
 The content count displayed in the UI must match the authored lessons in `hub/catalog.ts`. Do not label planned material as live content.
 
