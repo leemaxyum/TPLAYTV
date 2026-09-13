@@ -101,9 +101,20 @@
         </section>
 
         <section id="study-view" class="channel study-view hidden" aria-labelledby="study-title">
+          <div id="study-home" class="study-home">
+            <p class="eyebrow">Study</p><h2 id="study-title">Choose how you want to learn</h2>
+            <p class="study-home-copy">Your quiet personal library and the room's collaborative board now live in separate places.</p>
+            <div class="study-paths">
+              <a class="study-path primary" href="/hub/"><p>01 · Solo</p><h3>Self Study Hub</h3><span>Courses, detailed lessons, PDFs, practice, flashcards, quizzes, focus sessions, and your local review queue.</span><strong>Open Hub Learn →</strong></a>
+              <button class="study-path" id="open-recreation" type="button"><p>02 · Together</p><h3>Study Recreation Room</h3><span>Collaborate with the people in this room: shared board, teacher modules, private quizzes, and tasks.</span><strong>Open room tools →</strong></button>
+              <a class="study-path" href="/hub/"><p>03 · Your route</p><h3>First-year CS / AI / ML</h3><span>Follow the staged self-study route: Python, maths, algorithms, systems, and machine learning.</span><strong>Browse curriculum →</strong></a>
+            </div>
+          </div>
+          <div id="recreation-room" class="hidden">
+          <button id="back-to-study-home" type="button" class="quiet study-back">← Study home</button>
           <div class="study-heading">
             <p class="eyebrow">Study space</p>
-            <h2 id="study-title">A shared board for the room</h2>
+            <h2>A shared board for the room</h2>
             <p>Keep the next thought, question, or task visible without turning the room into a noisy feed.</p>
           </div>
           <div class="study-compose" aria-label="Add to the shared board">
@@ -161,6 +172,7 @@
             <p id="booster-status" class="booster-status">Load a small course set to begin. Phone answers stay private.</p>
             <div id="booster-live" class="booster-live" aria-live="polite"></div>
           </section>
+          </div>
         </section>
 
         <section id="game-view" class="channel game-view hidden">
@@ -259,6 +271,7 @@
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
+
 
 
 
