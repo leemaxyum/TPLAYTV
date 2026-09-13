@@ -44,6 +44,8 @@ const replayBtn = document.getElementById("replay-btn")!;
 const libraryBtn = document.getElementById("library-btn")!;
 const resetSessionBtn = document.getElementById("reset-session-btn")!;
 const studySection = document.getElementById("study-view")!;
+const studyHome = document.getElementById("study-home")!;
+const recreationRoom = document.getElementById("recreation-room")!;
 const studyBoardEl = document.getElementById("study-board")!;
 const studyTextEl = document.getElementById("study-text") as HTMLInputElement;
 const studyLaneEl = document.getElementById("study-lane") as HTMLSelectElement;
@@ -298,6 +300,7 @@ document.querySelectorAll<HTMLButtonElement>(".nav-item[data-nav]").forEach((btn
       document.getElementById("players")?.scrollIntoView({ behavior: "smooth", block: "start" });
     } else if (target === "study") {
       showOnly(studySection);
+      studyHome.classList.remove("hidden"); recreationRoom.classList.add("hidden");
     }
   });
 });
@@ -346,6 +349,8 @@ studyAddBtn.addEventListener("click", () => {
   socket.emit("study:add", { lane: studyLaneEl.value, text });
   studyTextEl.value = "";
 });
+document.getElementById("open-recreation")?.addEventListener("click", () => { studyHome.classList.add("hidden"); recreationRoom.classList.remove("hidden"); });
+document.getElementById("back-to-study-home")?.addEventListener("click", () => { recreationRoom.classList.add("hidden"); studyHome.classList.remove("hidden"); });
 
 studyTextEl.addEventListener("keydown", (event) => {
   if (event.key === "Enter") studyAddBtn.click();
@@ -703,6 +708,7 @@ resetSessionBtn.addEventListener("click", () => {
   highForestFrame.src = "";
   socket.emit("room:reset-session");
 });
+
 
 
 
