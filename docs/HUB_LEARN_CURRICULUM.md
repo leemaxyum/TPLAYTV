@@ -185,7 +185,7 @@ Solo learning owns private progress, flashcards, Pomodoro sessions, personal not
 
 ## Implemented library snapshot — September 2026
 
-The first live curriculum tranche is authored locally in `hub/catalog.ts`. It currently includes 25 **Programming Languages Library** lessons, in addition to the wider cross-discipline starter curriculum. Each live lesson has a dedicated reader view with:
+The first live curriculum tranche is authored locally in `hub/catalog.ts`. It currently includes 41 **Programming Languages Library** lessons, in addition to the wider cross-discipline starter curriculum. Each live lesson has a dedicated reader view with:
 
 - a plain-language explanation and real-world use case;
 - a retrieval prompt with an original worked solution;
@@ -196,9 +196,10 @@ The first live curriculum tranche is authored locally in `hub/catalog.ts`. It cu
 
 1. Why languages exist, source code, runtimes, syntax/semantics, types, values/references, and ownership.
 2. Programming paradigms plus API contracts and compatibility.
-3. C++ toolchain, references and `const`, RAII, ownership, smart pointers, standard containers, and failure modelling.
-4. Python/C++ trade-offs, cross-language testing, and a deliberate interview-practice loop.
+3. C++ toolchain, program I/O, flow control, functions, classes, templates, iterators, move semantics, RAII, ownership, smart pointers, standard containers, debugging, and failure modelling.
+4. Python/C++ trade-offs, cross-language testing, a deliberate interview-practice loop, and two-sum with a hash map.
 5. JavaScript host environments, values/coercion, objects and immutability, closures, asynchronous work, TypeScript types/generics, UI state, and a local study-tracker project.
+6. Python problem-solving: input contracts, collection complexity, key sorting, recursion, generators, decorators, tests, and valid parentheses with a stack.
 
 The visible lesson count is deliberately kept equal to the actual authored lesson count; planned subjects are documented in the 120-topic map rather than presented as already available content.
 
