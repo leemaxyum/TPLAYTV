@@ -26,6 +26,8 @@ export type RoomCreatedPayload = {
 export type RoomJoinedPayload = {
   code: string;
   playerId: string;
+  // Sent only to the joining controller; never included in RoomState.
+  reconnectToken: string;
 };
 
 export type ServerErrorPayload = {

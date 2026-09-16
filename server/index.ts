@@ -7,11 +7,14 @@ import { randomUUID } from "node:crypto";
 import { getLanIPv4 } from "./lan.js";
 import {
   addPlayer,
+  bindPlayerSocket,
+  clearPlayerSocket,
   closeRoom,
   createRoom,
   deleteRoomIfEmpty,
   getRoom,
   hasPlayerNamed,
+  isCurrentPlayerSocket,
   isRoomFull,
   markDisconnected,
   reconnectPlayer,
@@ -128,6 +131,7 @@ async function main() {
   // Clients never invent their own player IDs or room state.
   io.on("connection", (socket) => {
     socket.on("room:create", () => {
+      if (socket.data.role) return;
       const room = createRoom(socket.id);
       socket.data.role = "host";
       socket.data.roomCode = room.code;
@@ -146,6 +150,7 @@ async function main() {
     socket.on(
       "room:join",
       (raw: { code?: string; name?: string } = {}) => {
+        if (socket.data.role) return;
         const code = typeof raw.code === "string" ? raw.code.toUpperCase() : "";
         const room = getRoom(code);
         if (!room) {
@@ -195,14 +200,16 @@ async function main() {
         }
 
         const playerId = randomUUID();
-        addPlayer(room, playerId, name);
+        const reconnectToken = randomUUID();
+        addPlayer(room, playerId, name, reconnectToken);
 
         socket.data.role = "controller";
         socket.data.roomCode = room.code;
         socket.data.playerId = playerId;
+        bindPlayerSocket(room, playerId, socket.id);
         socket.join(room.code);
 
-        const payload: RoomJoinedPayload = { code: room.code, playerId };
+        const payload: RoomJoinedPayload = { code: room.code, playerId, reconnectToken };
         socket.emit("room:joined", payload);
         io.to(room.code).emit("room:state", toPublicState(room));
         socket.emit("study:state", getStudyBoard(room.code));
@@ -213,11 +220,12 @@ async function main() {
 
     // A phone that reloads or drops Wi-Fi briefly reconnects to its EXISTING
     // player identity (and score) instead of joining as a brand-new player.
-    // The controller stores {code, playerId} in localStorage and tries this
+    // The controller stores {code, playerId, reconnectToken} in localStorage and tries this
     // before falling back to a normal room:join.
     socket.on(
       "player:reconnect",
-      (raw: { code?: string; playerId?: string } = {}) => {
+      (raw: { code?: string; playerId?: string; reconnectToken?: string } = {}) => {
+        if (socket.data.role) return;
         const code = typeof raw.code === "string" ? raw.code.toUpperCase() : "";
         const room = getRoom(code);
         if (!room) {
@@ -230,7 +238,8 @@ async function main() {
         }
 
         const playerId = typeof raw.playerId === "string" ? raw.playerId : "";
-        if (!playerId || !reconnectPlayer(room, playerId)) {
+        const reconnectToken = typeof raw.reconnectToken === "string" ? raw.reconnectToken : "";
+        if (!playerId || !reconnectToken || !reconnectPlayer(room, playerId, reconnectToken)) {
           const err: ServerErrorPayload = {
             code: "PLAYER_NOT_FOUND",
             message: "Couldn't reconnect — please join again.",
@@ -239,12 +248,17 @@ async function main() {
           return;
         }
 
+        const previousSocketId = bindPlayerSocket(room, playerId, socket.id);
+        if (previousSocketId && previousSocketId !== socket.id) {
+          io.sockets.sockets.get(previousSocketId)?.disconnect(true);
+        }
+
         socket.data.role = "controller";
         socket.data.roomCode = room.code;
         socket.data.playerId = playerId;
         socket.join(room.code);
 
-        const payload: RoomJoinedPayload = { code: room.code, playerId };
+        const payload: RoomJoinedPayload = { code: room.code, playerId, reconnectToken };
         socket.emit("room:joined", payload);
         io.to(room.code).emit("room:state", toPublicState(room));
         socket.emit("study:state", getStudyBoard(room.code));
@@ -333,6 +347,8 @@ async function main() {
       const roomCode = socket.data.roomCode as string | undefined;
       const playerId = socket.data.playerId as string | undefined;
       if (socket.data.role !== "controller" || !roomCode || !playerId) return;
+      const room = getRoom(roomCode);
+      if (!room || !isCurrentPlayerSocket(room, playerId, socket.id)) return;
       const accepted = submitKnowledgeAnswer(roomCode, playerId, raw.choiceIndex);
       socket.emit("booster:answer-status", { accepted });
       if (accepted) io.to(roomCode).emit("booster:state", getKnowledgeState(roomCode));
@@ -372,7 +388,8 @@ async function main() {
       const playerId = socket.data.playerId as string | undefined;
       if (socket.data.role !== "controller" || !roomCode || !playerId) return;
       const room = getRoom(roomCode);
-      if (!room || room.phase !== "playing" || !room.gameId) return;
+      if (!room || !isCurrentPlayerSocket(room, playerId, socket.id)) return;
+      if (room.phase !== "playing" || !room.gameId) return;
 
       // Defense in depth: never trust the client's action string. Every game's
       // controller definition declares its valid buttons — reject anything else
@@ -473,7 +490,8 @@ async function main() {
       }
 
       const playerId = socket.data.playerId as string | undefined;
-      if (!playerId) return;
+      if (!playerId || !isCurrentPlayerSocket(room, playerId, socket.id)) return;
+      clearPlayerSocket(room, playerId);
 
       markDisconnected(room, playerId, () => {
         if (room.gameId === COLOR_CLASH_ID) handleColorClashDisconnect(io, room);

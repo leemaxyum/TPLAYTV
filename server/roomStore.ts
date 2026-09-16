@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import type { PlayerState, RoomState } from "../src/platform/types.js";
 import { generateRoomCode } from "./roomCode.js";
 
@@ -6,6 +7,10 @@ export type InternalRoom = RoomState & {
   hostSocketId: string | null;
   // playerId -> pending removal timer, used for the reconnect grace period.
   disconnectTimers: Map<string, ReturnType<typeof setTimeout>>;
+  // playerId -> capability secret. This deliberately never appears in RoomState.
+  reconnectTokens: Map<string, string>;
+  // playerId -> only the newest controller socket may mutate that player.
+  controllerSocketIds: Map<string, string>;
 };
 
 const DISCONNECT_GRACE_MS = 30_000;
@@ -25,6 +30,8 @@ export function createRoom(hostSocketId: string): InternalRoom {
     players: [],
     hostSocketId,
     disconnectTimers: new Map(),
+    reconnectTokens: new Map(),
+    controllerSocketIds: new Map(),
   };
   rooms.set(code, room);
   return room;
@@ -55,7 +62,8 @@ export function hasPlayerNamed(room: InternalRoom, name: string): boolean {
 export function addPlayer(
   room: InternalRoom,
   playerId: string,
-  name: string
+  name: string,
+  reconnectToken: string
 ): PlayerState {
   const player: PlayerState = {
     id: playerId,
@@ -65,7 +73,22 @@ export function addPlayer(
     score: 0,
   };
   room.players.push(player);
+  room.reconnectTokens.set(playerId, reconnectToken);
   return player;
+}
+
+export function bindPlayerSocket(room: InternalRoom, playerId: string, socketId: string): string | undefined {
+  const previousSocketId = room.controllerSocketIds.get(playerId);
+  room.controllerSocketIds.set(playerId, socketId);
+  return previousSocketId;
+}
+
+export function isCurrentPlayerSocket(room: InternalRoom, playerId: string, socketId: string): boolean {
+  return room.controllerSocketIds.get(playerId) === socketId;
+}
+
+export function clearPlayerSocket(room: InternalRoom, playerId: string): void {
+  room.controllerSocketIds.delete(playerId);
 }
 
 export function markDisconnected(
@@ -83,14 +106,28 @@ export function markDisconnected(
   const timer = setTimeout(() => {
     room.players = room.players.filter((p) => p.id !== playerId);
     room.disconnectTimers.delete(playerId);
+    room.reconnectTokens.delete(playerId);
+    room.controllerSocketIds.delete(playerId);
     onExpire();
   }, DISCONNECT_GRACE_MS);
   room.disconnectTimers.set(playerId, timer);
 }
 
-export function reconnectPlayer(room: InternalRoom, playerId: string): boolean {
+export function reconnectPlayer(
+  room: InternalRoom,
+  playerId: string,
+  reconnectToken: string
+): boolean {
   const player = room.players.find((p) => p.id === playerId);
-  if (!player) return false;
+  const expectedToken = room.reconnectTokens.get(playerId);
+  if (!player || !expectedToken || typeof reconnectToken !== "string") return false;
+
+  const expectedBytes = Buffer.from(expectedToken);
+  const receivedBytes = Buffer.from(reconnectToken);
+  if (
+    expectedBytes.length !== receivedBytes.length ||
+    !timingSafeEqual(expectedBytes, receivedBytes)
+  ) return false;
   player.connected = true;
   const timer = room.disconnectTimers.get(playerId);
   if (timer) {
@@ -120,5 +157,7 @@ export function deleteRoomIfEmpty(room: InternalRoom): void {
 export function closeRoom(room: InternalRoom): void {
   for (const timer of room.disconnectTimers.values()) clearTimeout(timer);
   room.disconnectTimers.clear();
+  room.reconnectTokens.clear();
+  room.controllerSocketIds.clear();
   rooms.delete(room.code);
 }
