@@ -7,11 +7,14 @@ import { randomUUID } from "node:crypto";
 import { getLanIPv4 } from "./lan.js";
 import {
   addPlayer,
+  bindPlayerSocket,
+  clearPlayerSocket,
   closeRoom,
   createRoom,
   deleteRoomIfEmpty,
   getRoom,
   hasPlayerNamed,
+  isCurrentPlayerSocket,
   isRoomFull,
   markDisconnected,
   reconnectPlayer,
@@ -201,6 +204,7 @@ async function main() {
         socket.data.role = "controller";
         socket.data.roomCode = room.code;
         socket.data.playerId = playerId;
+        bindPlayerSocket(room, playerId, socket.id);
         socket.join(room.code);
 
         const payload: RoomJoinedPayload = { code: room.code, playerId, reconnectToken };
@@ -239,6 +243,11 @@ async function main() {
           };
           socket.emit("connection:error", err);
           return;
+        }
+
+        const previousSocketId = bindPlayerSocket(room, playerId, socket.id);
+        if (previousSocketId && previousSocketId !== socket.id) {
+          io.sockets.sockets.get(previousSocketId)?.disconnect(true);
         }
 
         socket.data.role = "controller";
@@ -475,7 +484,8 @@ async function main() {
       }
 
       const playerId = socket.data.playerId as string | undefined;
-      if (!playerId) return;
+      if (!playerId || !isCurrentPlayerSocket(room, playerId, socket.id)) return;
+      clearPlayerSocket(room, playerId);
 
       markDisconnected(room, playerId, () => {
         if (room.gameId === COLOR_CLASH_ID) handleColorClashDisconnect(io, room);
