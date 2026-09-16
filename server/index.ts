@@ -149,6 +149,7 @@ async function main() {
     socket.on(
       "room:join",
       (raw: { code?: string; name?: string } = {}) => {
+        if (socket.data.role) return;
         const code = typeof raw.code === "string" ? raw.code.toUpperCase() : "";
         const room = getRoom(code);
         if (!room) {
@@ -223,6 +224,7 @@ async function main() {
     socket.on(
       "player:reconnect",
       (raw: { code?: string; playerId?: string; reconnectToken?: string } = {}) => {
+        if (socket.data.role) return;
         const code = typeof raw.code === "string" ? raw.code.toUpperCase() : "";
         const room = getRoom(code);
         if (!room) {
@@ -344,6 +346,8 @@ async function main() {
       const roomCode = socket.data.roomCode as string | undefined;
       const playerId = socket.data.playerId as string | undefined;
       if (socket.data.role !== "controller" || !roomCode || !playerId) return;
+      const room = getRoom(roomCode);
+      if (!room || !isCurrentPlayerSocket(room, playerId, socket.id)) return;
       const accepted = submitKnowledgeAnswer(roomCode, playerId, raw.choiceIndex);
       socket.emit("booster:answer-status", { accepted });
       if (accepted) io.to(roomCode).emit("booster:state", getKnowledgeState(roomCode));
@@ -383,7 +387,8 @@ async function main() {
       const playerId = socket.data.playerId as string | undefined;
       if (socket.data.role !== "controller" || !roomCode || !playerId) return;
       const room = getRoom(roomCode);
-      if (!room || room.phase !== "playing" || !room.gameId) return;
+      if (!room || !isCurrentPlayerSocket(room, playerId, socket.id)) return;
+      if (room.phase !== "playing" || !room.gameId) return;
 
       // Defense in depth: never trust the client's action string. Every game's
       // controller definition declares its valid buttons — reject anything else
