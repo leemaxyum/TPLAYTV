@@ -9,6 +9,8 @@ export type InternalRoom = RoomState & {
   disconnectTimers: Map<string, ReturnType<typeof setTimeout>>;
   // playerId -> capability secret. This deliberately never appears in RoomState.
   reconnectTokens: Map<string, string>;
+  // playerId -> only the newest controller socket may mutate that player.
+  controllerSocketIds: Map<string, string>;
 };
 
 const DISCONNECT_GRACE_MS = 30_000;
@@ -29,6 +31,7 @@ export function createRoom(hostSocketId: string): InternalRoom {
     hostSocketId,
     disconnectTimers: new Map(),
     reconnectTokens: new Map(),
+    controllerSocketIds: new Map(),
   };
   rooms.set(code, room);
   return room;
@@ -74,6 +77,20 @@ export function addPlayer(
   return player;
 }
 
+export function bindPlayerSocket(room: InternalRoom, playerId: string, socketId: string): string | undefined {
+  const previousSocketId = room.controllerSocketIds.get(playerId);
+  room.controllerSocketIds.set(playerId, socketId);
+  return previousSocketId;
+}
+
+export function isCurrentPlayerSocket(room: InternalRoom, playerId: string, socketId: string): boolean {
+  return room.controllerSocketIds.get(playerId) === socketId;
+}
+
+export function clearPlayerSocket(room: InternalRoom, playerId: string): void {
+  room.controllerSocketIds.delete(playerId);
+}
+
 export function markDisconnected(
   room: InternalRoom,
   playerId: string,
@@ -90,6 +107,7 @@ export function markDisconnected(
     room.players = room.players.filter((p) => p.id !== playerId);
     room.disconnectTimers.delete(playerId);
     room.reconnectTokens.delete(playerId);
+    room.controllerSocketIds.delete(playerId);
     onExpire();
   }, DISCONNECT_GRACE_MS);
   room.disconnectTimers.set(playerId, timer);
@@ -140,5 +158,6 @@ export function closeRoom(room: InternalRoom): void {
   for (const timer of room.disconnectTimers.values()) clearTimeout(timer);
   room.disconnectTimers.clear();
   room.reconnectTokens.clear();
+  room.controllerSocketIds.clear();
   rooms.delete(room.code);
 }
