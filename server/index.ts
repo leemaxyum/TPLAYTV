@@ -195,14 +195,15 @@ async function main() {
         }
 
         const playerId = randomUUID();
-        addPlayer(room, playerId, name);
+        const reconnectToken = randomUUID();
+        addPlayer(room, playerId, name, reconnectToken);
 
         socket.data.role = "controller";
         socket.data.roomCode = room.code;
         socket.data.playerId = playerId;
         socket.join(room.code);
 
-        const payload: RoomJoinedPayload = { code: room.code, playerId };
+        const payload: RoomJoinedPayload = { code: room.code, playerId, reconnectToken };
         socket.emit("room:joined", payload);
         io.to(room.code).emit("room:state", toPublicState(room));
         socket.emit("study:state", getStudyBoard(room.code));
@@ -213,11 +214,11 @@ async function main() {
 
     // A phone that reloads or drops Wi-Fi briefly reconnects to its EXISTING
     // player identity (and score) instead of joining as a brand-new player.
-    // The controller stores {code, playerId} in localStorage and tries this
+    // The controller stores {code, playerId, reconnectToken} in localStorage and tries this
     // before falling back to a normal room:join.
     socket.on(
       "player:reconnect",
-      (raw: { code?: string; playerId?: string } = {}) => {
+      (raw: { code?: string; playerId?: string; reconnectToken?: string } = {}) => {
         const code = typeof raw.code === "string" ? raw.code.toUpperCase() : "";
         const room = getRoom(code);
         if (!room) {
@@ -230,7 +231,8 @@ async function main() {
         }
 
         const playerId = typeof raw.playerId === "string" ? raw.playerId : "";
-        if (!playerId || !reconnectPlayer(room, playerId)) {
+        const reconnectToken = typeof raw.reconnectToken === "string" ? raw.reconnectToken : "";
+        if (!playerId || !reconnectToken || !reconnectPlayer(room, playerId, reconnectToken)) {
           const err: ServerErrorPayload = {
             code: "PLAYER_NOT_FOUND",
             message: "Couldn't reconnect — please join again.",
@@ -244,7 +246,7 @@ async function main() {
         socket.data.playerId = playerId;
         socket.join(room.code);
 
-        const payload: RoomJoinedPayload = { code: room.code, playerId };
+        const payload: RoomJoinedPayload = { code: room.code, playerId, reconnectToken };
         socket.emit("room:joined", payload);
         io.to(room.code).emit("room:state", toPublicState(room));
         socket.emit("study:state", getStudyBoard(room.code));
