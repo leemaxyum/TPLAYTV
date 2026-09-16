@@ -79,7 +79,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-phone-nav]").forEach((button
 // tab reload shouldn't force rejoining and losing your score.
 // ===========================================================================
 
-type SavedSession = { code: string; playerId: string };
+type SavedSession = { code: string; playerId: string; reconnectToken: string };
 const SESSION_KEY = "fleavo:session";
 
 function loadSession(): SavedSession | null {
@@ -87,7 +87,7 @@ function loadSession(): SavedSession | null {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (typeof parsed?.code === "string" && typeof parsed?.playerId === "string") return parsed;
+    if (typeof parsed?.code === "string" && typeof parsed?.playerId === "string" && typeof parsed?.reconnectToken === "string") return parsed;
     return null;
   } catch {
     return null;
@@ -143,7 +143,7 @@ socket.on("connect", () => {
 
 socket.on("room:joined", (payload: RoomJoinedPayload) => {
   myPlayerId = payload.playerId;
-  saveSession({ code: payload.code, playerId: payload.playerId });
+  saveSession({ code: payload.code, playerId: payload.playerId, reconnectToken: payload.reconnectToken });
   form.classList.add("hidden");
   showOnly(waitingEl);
   profileRoomEl.textContent = payload.code;
