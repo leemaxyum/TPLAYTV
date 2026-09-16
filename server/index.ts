@@ -131,6 +131,7 @@ async function main() {
   // Clients never invent their own player IDs or room state.
   io.on("connection", (socket) => {
     socket.on("room:create", () => {
+      if (socket.data.role) return;
       const room = createRoom(socket.id);
       socket.data.role = "host";
       socket.data.roomCode = room.code;
